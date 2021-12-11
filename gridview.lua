@@ -116,13 +116,13 @@ function GridView:buildRow(squares, row_num)
     }
     for col_num, square in ipairs(squares) do
         row:addSquare(GridSquare:new{
-                width = self.square_width,
-                height = self.square_height,
-                pos_x = col_num,
-                pos_y = row_num,
-                margin = self.square_margin,
-                letter_value = square.letter,
-                number_value = square.number,
+            width = self.square_width,
+            height = self.square_height,
+            pos_x = col_num,
+            pos_y = row_num,
+            margin = self.square_margin,
+            letter_value = square.letter,
+            number_value = square.number,
         })
     end
     row:update()

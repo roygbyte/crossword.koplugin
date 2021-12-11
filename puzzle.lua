@@ -1,4 +1,5 @@
 local logger = require("logger")
+local Solve = require("solve")
 
 local Puzzle = {
     json_object = nil,
@@ -22,8 +23,15 @@ function Puzzle:init(json_object)
         logger.dbg("Puzzle: json_object must be set for puzzle to be created.")
         return false
     end
-    -- Onto the initialization
+    -- Onto the initialization.
     self.size = json_object.size
+    -- Initialize the solves.
+    self.solves = {}
+    -- Create the down and across solves.
+    self:createSolves(json_object.clues.down, json_object.answers.down, Solve.DOWN, json_object.gridnums)
+    self:createSolves(json_object.clues.across, json_object.answers.across, Solve.ACROSS, json_object.gridnums)
+    -- Temp: create the grid. Probably this should be put inside a "player" object, because
+    -- it represents the players letters
     self.grid = {}
     local row = {} -- Start with an empty row to collect squares.
     for i, letter in ipairs(json_object.grid) do
@@ -43,6 +51,20 @@ function Puzzle:init(json_object)
             row = {} -- Empty the row table to collect the new set of squares.
         end
     end
+    logger.dbg(self.solves)
+end
+
+function Puzzle:createSolves(clues, answers, direction, grid_nums)
+    for i, clue in ipairs(clues) do
+        local solve = Solve:new{
+            word = answers[i],
+            direction = direction,
+            clue = clue,
+        }
+        -- Some values are easiest initialized within the object.
+        solve:init(self.size, grid_nums)
+        table.insert(self.solves, solve)
+    end
 end
 
 function Puzzle:getGrid()
@@ -50,7 +72,8 @@ function Puzzle:getGrid()
 end
 
 function Puzzle:getSquareAtPos(row, col)
-    return self.grid[row][col]
+    local index = ((row - 1) * self.size.rows) + col
+    return self.solves[index]
 end
 
 return Puzzle
