@@ -7,8 +7,6 @@ local Row = InputContainer:new{
     width = nil,
     height = nil,
     padding = nil,
-    font_size = 10,
-    font_face = "xx_smallinfofont",
 }
 
 function Row:init()
@@ -24,13 +22,14 @@ function Row:update()
 
     for num, square in ipairs(self.squares) do
         table.insert(hori, square)
-        table.insert(hori, HorizontalSpan:new{ width = self.padding, })
     end
 
     self[1] = FrameContainer:new{
         width = self.width,
         height = self.height,
+        bordersize = 0,
         padding = 0,
+        margin = 0,
         hori
     }
 end

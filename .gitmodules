@@ -1,0 +1,3 @@
+[submodule "nyt_crosswords"]
+	path = nyt_crosswords
+	url = https://github.com/doshea/nyt_crosswords
