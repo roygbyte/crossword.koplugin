@@ -84,7 +84,7 @@ function Crossword:setPuzzlesDirectory()
     self:lazyInitialization()
 end
 
-function Crossword:gameView()
+function Crossword:loadPuzzle()
     local file_path = ("%s/%s"):format(self.puzzle_dir, "/1990/01/01.json")
     local file, err = io.open(file_path, "rb")
 
@@ -95,33 +95,29 @@ function Crossword:gameView()
     local file_content = file:read("*all")
     file:close()
 
-    local puzzle = json.decode(file_content)
-    logger.dbg(puzzle)
-    -- Create the grid, which contains the letters for
-    -- each row.
-    local grid = {}
-    local row = {}
-    for i, letter in ipairs(puzzle.grid) do
-        table.insert(row, {
-                letter = letter,
-                number = puzzle.gridnums[i],
-        })
-        if i % 15 == 0 then
-            table.insert(grid, row)
-            row = {}
-        end
-    end
+    local Puzzle = require("puzzle")
+    local puzzle = Puzzle:new{}
+    puzzle:init(json.decode(file_content))
+    return puzzle
+end
 
-    local PuzzleView = require("puzzleview")
-    PuzzleView = PuzzleView:new{
+function Crossword:gameView()
+    local puzzle = self:loadPuzzle()
+
+    local GridView = require("gridview")
+    GridView = GridView:new{
         size = {
             cols = puzzle.size.cols,
             rows = puzzle.size.rows
         },
-        grid = grid
+        grid = puzzle.grid,
+        active_clue = "This is the hint",
+        on_tap_callback = function(row, col)
+            logger.dbg(puzzle:getSquareAtPos(row, col))
+        end
     }
-
-    UIManager:show(PuzzleView)
+    UIManager:show(GridView)
+    GridView:render()
 end
 
 return Crossword

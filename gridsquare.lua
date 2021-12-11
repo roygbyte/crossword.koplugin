@@ -10,48 +10,38 @@ local TextBoxWidget = require("ui/widget/textboxwidget")
 
 local logger = require("logger")
 
-local PuzzleSquare = InputContainer:new{
+local GridSquare = InputContainer:new{
+    height = nil,
+    width = nil,
     letter_font_face = "infofont",
     letter_font_size = nil,
     number_font_face = "infont",
     number_font_size = nil,
     margin = nil,
-    solve = nil,
+    letter_value = nil,
+    number_value = nil,
 }
 
-function PuzzleSquare:init()
-    -- Lazy check to see if solve is set.
-    if not self.solve then
-        logger.dbg("PuzzleSquare: solve not set for square")
-        return
-    end
-
+function GridSquare:init()
     -- Set up the right bg color, letter, etc.
-    local bg_color = self.solve.letter ~= "." and
+    local bg_color = self.letter_value ~= "." and
         Blitbuffer.COLOR_WHITE or
         Blitbuffer.COLOR_BLACK
-    local letter = self.solve.letter and
-        self.solve.letter or
-        ""
-    local number = self.solve.number ~= 0 and
-        tostring(self.solve.number) or
-        ""
 
     self.letter_font_size = TextBoxWidget:getFontSizeToFitHeight(self.height, 1, 0.3)
     self.number_font_size = self.letter_font_size / 2
 
-    -- This is the letter input by the player.
-    self.letter = TextWidget:new{
-        text = letter,
+    -- Maybe a letter input by the player.
+    self.letter_widget = TextWidget:new{
+        text = self.letter_value,
         face = Font:getFace(self.letter_font_face, self.letter_font_size),
         fgcolor = Blitbuffer.COLOR_BLACK,
         padding = 0,
         bold = true,
     }
-    -- This is the number that corresponds to the question.
-    -- Note that the number is not always set!
-    self.number = TextWidget:new{
-        text = number,
+    -- Maybe a number that corresponds to a question.
+    self.number_widget = TextWidget:new{
+        text = self.number_value,
         face = Font:getFace(self.number_font_face, self.number_font_size),
         fgcolor = Blitbuffer.COLOR_BLACK,
         padding = 0,
@@ -77,16 +67,12 @@ function PuzzleSquare:init()
                 },
                 padding = 0,
                 -- Add the letter
-                self.letter,
+                self.letter_widget,
             },
             -- Add the number
-            self.number,
+            self.number_widget,
         },
     }
 end
 
-function PuzzleSquare:onTap()
-    logger.dbg("TA________________P")
-end
-
-return PuzzleSquare
+return GridSquare
