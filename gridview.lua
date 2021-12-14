@@ -38,28 +38,21 @@ function GridView:init()
     -- The pixel dimensions of the squares. Calculate the initial width based on the size
     -- of the device and the number of columns. Then make a minor adjustment to account for
     -- the margins. To do this, divide margin in 4 and multiply by the number of columns.
-    self.square_margin = Size.border.window
+    self.square_margin = 1 --Size.border.window
     self.square_width = math.floor(
         (self.dimen.w - (2 * self.outer_padding) - (2 * self.inner_padding))
-        / self.size.cols) - ((self.square_margin / 4) * (6)) -- 6 works here for some reason, although in my head
+        / self.size.cols) - ((self.square_margin))
     -- (cont) it should be self.size.cols because that's what we're adjusting for.
     self.square_height = self.square_width
-    -- Register the event listener
-    self.ges_events.Tap = {
-        GestureRange:new{
-            ges = "tap",
-            range = function()
-                return self.dimen
-            end,
-        },
-    }
+    -- Computer the presumed height of the grid.
+    self.grid_height = self.size.rows * self.square_height
 end
 
 function GridView:render()
     -- Build the row and add the squares.
     self.rows_view = VerticalGroup:new { border = 0 }
-    for i, l in ipairs(self.grid) do
-        local row =  self:buildRow(l)
+    for row_num, grid_row in ipairs(self.grid) do
+        local row =  self:buildRow(grid_row, row_num)
         table.insert(self.rows_view, row)
     end
     -- Build the clue.
@@ -86,27 +79,6 @@ function GridView:render()
         }
     }
 end
-
-function GridView:onTap(_, ges)
-    -- Temp for debuggery
-    -- Find the square that's been tapped
-    -- so we want to find the square
-    -- and we can expedite that by getting the correct row, first,
-    -- which is given by the square_height stuff... we will have to account for margins, too.
-    -- self.square_margin
-    -- self.square_height
-    local y = ges.pos.y
-    local x = ges.pos.x
-    -- so, get the row number
-    local row_num = math.ceil(x / (self.square_height))
-    local col_num = math.ceil(y / self.square_width)
-    -- If a callback's been set, we need to send back the
-    -- coordinates so some genius can do something else.
-    if self.on_tap_callback then
-        self.on_tap_callback(row_num, col_num)
-    end
-end
-
 -- Given a table containing letters, build a row containing
 -- squares with said letters.
 function GridView:buildRow(squares, row_num)
@@ -118,11 +90,20 @@ function GridView:buildRow(squares, row_num)
         row:addSquare(GridSquare:new{
             width = self.square_width,
             height = self.square_height,
-            pos_x = col_num,
-            pos_y = row_num,
             margin = self.square_margin,
             letter_value = square.letter,
             number_value = square.number,
+            row_num = row_num, -- we pass the row and col so that
+            col_num = col_num, -- the tap callback can propagate values back
+            screen_zone = {
+                ratio_x = (self.square_width * (col_num)) / self.dimen.w,
+                ratio_y = (self.square_height * (row_num)) / self.dimen.h,
+                ratio_w = ((self.square_width * (col_num)) + self.square_width ) / self.dimen.w,
+                ratio_h = ((self.square_height * (row_num)) + self.square_height) / self.dimen.h,
+            },
+            on_tap_callback = function(row_num, col_num)
+                self.on_tap_callback(row_num, col_num)
+            end
         })
     end
     row:update()

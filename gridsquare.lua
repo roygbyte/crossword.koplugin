@@ -3,8 +3,10 @@ local CenterContainer = require("ui/widget/container/centercontainer")
 local InputContainer = require("ui/widget/container/inputcontainer")
 local Font = require("ui/font")
 local Geom = require("ui/geometry")
+local GestureRange = require("ui/gesturerange")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local OverlapGroup = require("ui/widget/overlapgroup")
+local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 
@@ -13,16 +15,18 @@ local logger = require("logger")
 local GridSquare = InputContainer:new{
     height = nil,
     width = nil,
+    margin = nil,
     letter_font_face = "infofont",
     letter_font_size = nil,
     number_font_face = "infont",
     number_font_size = nil,
-    margin = nil,
     letter_value = nil,
     number_value = nil,
 }
 
 function GridSquare:init()
+    -- Set the dimensions.
+    self.dimen = Geom:new{w = self.width, h = self.height}
     -- Set up the right bg color, letter, etc.
     local bg_color = self.letter_value ~= "." and
         Blitbuffer.COLOR_WHITE or
@@ -47,18 +51,30 @@ function GridSquare:init()
         padding = 0,
         bold = true,
     }
+    -- Register the event listener
+    self.ges_events.Tap = {
+        GestureRange:new{
+            ges = "tap",
+            range = function()
+                return self.dimen
+            end
+        },
+    }
     -- This is the container for the letter and number.
     self[1] = FrameContainer:new{
-        width = self.width,
-        height = self.height,
+        width = self.width - self.margin * 2,
+        height = self.height - self.margin * 2,
         color = Blitbuffer.COLOR_WHITE,
         background = bg_color,
         padding = 0,
-        margin = self.margin or 0,
+        margin = 0,
+        margin_left = margin,
+        --margin = self.margin or 0,
         bordersize = 0,
         OverlapGroup:new{
-            dimen = { w = self.width },
+            dimen = { w = self.width - self.margin, h = self.height - self.margin },
             padding = 0,
+            margin = 0,
             -- Keep the letter centered
             CenterContainer:new{
                 dimen = Geom:new{
@@ -73,6 +89,12 @@ function GridSquare:init()
             self.number_widget,
         },
     }
+end
+
+function GridSquare:onTap(_, ges)
+    if self.on_tap_callback then
+        self.on_tap_callback(self.row_num, self.col_num)
+    end
 end
 
 return GridSquare
