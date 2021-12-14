@@ -103,8 +103,8 @@ end
 
 function Crossword:gameView()
     local puzzle = self:loadPuzzle()
-
     local GridView = require("gridview")
+    logger.dbg(puzzle:getGrid())
     GridView = GridView:new{
         size = {
             cols = puzzle.size.cols,
