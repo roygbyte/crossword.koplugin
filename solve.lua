@@ -44,14 +44,14 @@ function Solve:init(puzzle_size, puzzle_grid_nums)
 
     if self.direction == Solve.DOWN then
         local index = 0
-        for char in string.gmatch(self.word, "[^AZ]") do
+        for char in string.gmatch(self.word, "[A-Z]") do
             local grid_index = (math.ceil(start_row + index * width) + start_col)
             index = index + 1
             table.insert(self.grid_indices, grid_index)
         end
     elseif self.direction == Solve.ACROSS then
         local index = 0
-        for char in string.gmatch(self.word, "[^AZ]") do
+        for char in string.gmatch(self.word, "[A-Z]") do
             local grid_index = (math.ceil(start_col + index * height) + start_row)
             index = index + 1
             table.insert(self.grid_indices, grid_index)
