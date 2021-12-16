@@ -132,7 +132,11 @@ end
 
 function Puzzle:getClueByPos(row, col, direction)
     local clue
-    for i, solve_index in ipairs(self.grid[row][col].solve_indices) do
+    local grid_elm = self.grid[row][col]
+    if not grid_elm or not grid_elm.solve_indices then
+        return nil
+    end
+    for i, solve_index in ipairs(grid_elm.solve_indices) do
         local solve = self.solves[solve_index]
         if not clue and solve.direction == direction then
             clue = solve.clue

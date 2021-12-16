@@ -122,6 +122,9 @@ function Crossword:initGameView()
             -- Then update the grid (@todo: display touch feedback) and the clue in
             -- the active grid view. Then refresh this view.
             local clue = self.active_puzzle:getClueByPos(row_num, col_num, Solve.DOWN)
+            if not clue then
+                return false
+            end
             self.ActiveGridView:updateGrid(self.active_puzzle:getGrid(), clue)
             self:refreshGameView()
         end
