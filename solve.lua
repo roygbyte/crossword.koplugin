@@ -39,22 +39,22 @@ function Solve:init(puzzle_size, puzzle_grid_nums)
     local word_length = string.len(self.word)
     local width = puzzle_size.cols
     local height = puzzle_size.rows
-    local start_row = math.ceil(self.grid_num / height) - 1
-    local start_col = math.ceil(self.grid_num - math.ceil(start_row * width)) - 1
+    --local start_row = math.ceil(self.grid_num / height)
+    --local start_col = puzzle_size.cols - ((start_row * width) - self.grid_num)
 
     if self.direction == Solve.DOWN then
         local index = 0
         for char in string.gmatch(self.word, "[A-Z]") do
-            local grid_index = (math.ceil(start_row + index * width) + start_col)
-            index = index + 1
+            local grid_index = self.grid_num + (index * width)
             table.insert(self.grid_indices, grid_index)
+            index = index + 1
         end
     elseif self.direction == Solve.ACROSS then
         local index = 0
         for char in string.gmatch(self.word, "[A-Z]") do
-            local grid_index = (math.ceil(start_col + index * height) + start_row)
-            index = index + 1
+            local grid_index = self.grid_num + index
             table.insert(self.grid_indices, grid_index)
+            index = index + 1
         end
     end
 end
