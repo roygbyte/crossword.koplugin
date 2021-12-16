@@ -104,16 +104,21 @@ end
 function Crossword:gameView()
     local puzzle = self:loadPuzzle()
     local GridView = require("gridview")
-    logger.dbg(puzzle:getGrid())
     GridView = GridView:new{
         size = {
             cols = puzzle.size.cols,
             rows = puzzle.size.rows
         },
-        grid = puzzle.grid,
+
+        grid = puzzle:getGrid(),
+        --grid = puzzle.grid,
         active_clue = "This is the hint",
-        on_tap_callback = function(row, col)
-            logger.dbg(puzzle:getSquareAtPos(row, col))
+        on_tap_callback = function(row_num, col_num)
+            -- We will look up the solve indices in the grid
+            -- object here, instead of passing them back up.
+            -- IDK, seems like a cleaner method.
+            logger.dbg(puzzle.grid[row_num][col_num])
+            --- @todo: do something when tap
         end
     }
     UIManager:show(GridView)

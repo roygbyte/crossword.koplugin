@@ -30,28 +30,6 @@ function Puzzle:init(json_object)
     -- Create the down and across solves.
     self:createSolves(json_object.clues.down, json_object.answers.down, Solve.DOWN, json_object.gridnums)
     self:createSolves(json_object.clues.across, json_object.answers.across, Solve.ACROSS, json_object.gridnums)
-    -- Temp grid construction, to be replaced by Puzzle:getGrid
-    -- Below: works!
-    self.grid = {}
-    local row = {} -- Start with an empty row to collect squares.
-    for i, letter in ipairs(json_object.grid) do
-        local grid_num = json_object.gridnums[i]
-        -- Add a square to the row
-        table.insert(row, {
-                letter = letter and
-                    letter or
-                    "",
-                number = grid_num ~= 0 and
-                    tostring(grid_num) or
-                    "",
-        })
-        -- Check whether to insert the row and reset the count.
-        if i % self.size.cols == 0 then
-            table.insert(self.grid, row)
-            row = {} -- Empty the row table to collect the new set of squares.
-        end
-    end
-
 end
 -- For lack of better naming, the "solves" are the combination of
 -- word, direction, and clue that make up a crossword puzzle. This method
@@ -75,40 +53,80 @@ function Puzzle:createSolves(clues, answers, direction, grid_nums)
 end
 -- For now, we build the grid from scratch everytime we access it.
 function Puzzle:getGrid()
-    -- Below: temp! Not working!! All buggered up!!
-    -- We want to be able to build a grid only from our "Solve" objects,
-    -- and not the cheater gridnums list in the NYT archives data source.
+    -- Cycle through each of the 'solves' and add each element to a list
+    -- called 'squares' which will eventually be passed to the view.
     local grid = {}
     for solve_index, solve in ipairs(self.solves) do
-        -- Within solve.indices are all of the grid_index numbers
-        -- for which we will want to assign this solve. One single grid element may
-        -- point to multiple (at most two) solves.
-        logger.dbg(solve.grid_indices)
+        -- Each solve contains indices that point to the other squares where its letters
+        -- are contained. Loop through the indices and build a square element.
         for i, grid_index in ipairs(solve.grid_indices) do
-            -- Check to see if the grid table contains an entry for the given
+            -- Check to see if a number should be set for this grid square
+            local number = tonumber(grid_index) == tonumber(solve.grid_num) and
+                solve.clue_num or
+                ""
+            -- Check to see if the squares contains an entry for the given
             -- grid index. Positions in the table are used to indicate the index.
-            -- So, something at grid[4] is the 4th square in the puzzle view, and should
+            -- So, something at squares[4] is the 4th square in the puzzle view, and should
             -- include an index to the solve it is for.
             if not grid[grid_index] then
                 -- Make the initial element and add it to the list.
-                local grid_elm = {
+                local grid_square = {
                     solve_indices = {solve_index},
-                    letter = string.sub(solve.word, i, i + 1), -- Get first character of word,
-                    number = solve.clue_num,
+                    letter = string.sub(solve.word, i, i), -- Get first character of word,
+                    number = number
                 }
-                grid[grid_index] = grid_elm
+                grid[grid_index] = grid_square
             else
-                -- Update the existing element
+                -- Since the square has been initialized, update the existing element.
                 table.insert(grid[grid_index].solve_indices, solve_index)
+                -- Set the number if it is not null. This is necessary to account for the
+                -- fact that the first direction processed will have already initialized
+                -- all of the squares.
+                if number ~= "" then
+                    grid[grid_index].number = number
+                end
             end
         end
     end
-    logger.dbg(grid)
+    -- Now, go through the squares and add empty squares to fill in the gaps.
+    -- We use the size of the grid as the limit, because that will cover
+    -- numbers that haven't been assigned values in the list.
+    for i = 1, (self.size.cols * self.size.rows), 1 do
+        if not grid[i] then
+            grid[i] = {
+                letter = ".",
+                number = "",
+            }
+        end
+    end
+    -- Now, go through the grid and turn it into a legit grid, so that the structure
+    -- resembles something like this:
+    -- [1] = {
+    --    [1] = {
+    --        ["number"] = "1",
+    --        ["letter"] = "A",
+    --        ...
+    local temp_grid = {}
+    local row = {}
+    for i, grid_square in ipairs(grid) do
+        table.insert(row, grid_square)
+        if i % self.size.cols == 0 then
+            table.insert(temp_grid, row)
+            row = {}
+        end
+    end
+    -- Update the object's value for self.grid, in case its accessed elsewhere.
+    -- And obviously return the grid.
+    self.grid = temp_grid
+    return self.grid
 end
 
 function Puzzle:getSquareAtPos(row, col)
-    local index = ((row - 1) * self.size.rows) + col
-    logger.dbg(index)
+    local index = ((row) * self.size.rows) + col
+    return self.solves[index]
+end
+
+function Puzzle:getSolveByIndex(index)
     return self.solves[index]
 end
 
