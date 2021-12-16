@@ -79,6 +79,12 @@ function GridView:render()
         }
     }
 end
+-- Method to help me remember to update only the parts of the grid that need to
+-- be updated as the player interacts with the grid.
+function GridView:updateGrid(grid, active_clue)
+    self.grid = grid
+    self.active_clue = active_clue
+end
 -- Given a table containing letters, build a row containing
 -- squares with said letters.
 function GridView:buildRow(squares, row_num)

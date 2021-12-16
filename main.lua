@@ -16,6 +16,9 @@ local logger = require("logger")
 local json = require("json")
 local _ = require("gettext")
 
+local Solve = require("solve")
+local GridView = require("gridview")
+
 local Crossword = WidgetContainer:new{
     name = "crossword",
     settings = nil,
@@ -23,6 +26,8 @@ local Crossword = WidgetContainer:new{
         puzzles_dir = "puzzles_dir"
     },
     puzzles_dir = nil,
+    active_puzzle = nil,
+    ActiveGridView = nil,
 }
 
 function Crossword:init()
@@ -45,7 +50,8 @@ function Crossword:getSubMenuItems()
         {
             text = _("Play"),
             callback = function()
-                self:gameView()
+                self:initGameView()
+                self:refreshGameView()
             end
         },
         {
@@ -101,28 +107,30 @@ function Crossword:loadPuzzle()
     return puzzle
 end
 
-function Crossword:gameView()
-    local puzzle = self:loadPuzzle()
-    local GridView = require("gridview")
-    GridView = GridView:new{
+function Crossword:initGameView()
+    self.active_puzzle = self:loadPuzzle()
+    self.ActiveGridView = GridView:new{
         size = {
-            cols = puzzle.size.cols,
-            rows = puzzle.size.rows
+            cols = self.active_puzzle.size.cols,
+            rows = self.active_puzzle.size.rows
         },
-
-        grid = puzzle:getGrid(),
-        --grid = puzzle.grid,
-        active_clue = "This is the hint",
+        grid = self.active_puzzle:getGrid(),
+        active_clue = "hint",
         on_tap_callback = function(row_num, col_num)
-            -- We will look up the solve indices in the grid
-            -- object here, instead of passing them back up.
-            -- IDK, seems like a cleaner method.
-            logger.dbg(puzzle.grid[row_num][col_num])
-            --- @todo: do something when tap
+            -- On tap, pass the row and col nums to the active puzzle and return
+            -- a clue based on the active direction (i.e.: across or down)
+            -- Then update the grid (@todo: display touch feedback) and the clue in
+            -- the active grid view. Then refresh this view.
+            local clue = self.active_puzzle:getClueByPos(row_num, col_num, Solve.DOWN)
+            self.ActiveGridView:updateGrid(self.active_puzzle:getGrid(), clue)
+            self:refreshGameView()
         end
     }
-    UIManager:show(GridView)
-    GridView:render()
+end
+
+function Crossword:refreshGameView()
+    UIManager:show(self.ActiveGridView)
+    self.ActiveGridView:render()
 end
 
 return Crossword
