@@ -4,7 +4,6 @@ local InputContainer = require("ui/widget/container/inputcontainer")
 local Font = require("ui/font")
 local Geom = require("ui/geometry")
 local FrameContainer = require("ui/widget/container/framecontainer")
-local TextWidget = require("ui/widget/textwidget")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 
 local logger = require("logger")
@@ -20,10 +19,13 @@ local GridClue = InputContainer:new{
 function GridClue:init()
     self.clue_font_size = TextBoxWidget:getFontSizeToFitHeight(self.height, 1, 0.3)
 
-    self.clue_widget = TextWidget:new{
+    self.clue_widget = TextBoxWidget:new{
         text = self.clue_value,
         face = Font:getFace(self.clue_font_face, self.clue_font_size),
+        width = self.width,
+        alignment = "center",
         fgcolor = Blitbuffer.COLOR_WHITE,
+        bgcolor = Blitbuffer.COLOR_BLACK,
         padding = 0,
         bold = true,
     }
