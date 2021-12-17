@@ -18,6 +18,7 @@ local _ = require("gettext")
 
 local Solve = require("solve")
 local GridView = require("gridview")
+local GridInput = require("gridinput")
 
 local Crossword = WidgetContainer:new{
     name = "crossword",
@@ -109,7 +110,7 @@ end
 
 function Crossword:initGameView()
     self.active_puzzle = self:loadPuzzle()
-    self.ActiveGridView = GridView:new{
+    self.active_grid_view = GridView:new{
         size = {
             cols = self.active_puzzle.size.cols,
             rows = self.active_puzzle.size.rows
@@ -122,18 +123,26 @@ function Crossword:initGameView()
             -- Then update the grid (@todo: display touch feedback) and the clue in
             -- the active grid view. Then refresh this view.
             local clue = self.active_puzzle:getClueByPos(row_num, col_num, Solve.DOWN)
+            logger.dbg("main.lua -> on_tap_callback")
             if not clue then
-                return false
+                local keyboard = self.active_grid_view:showKeyboard(false)
+                self.active_puzzle:resetActiveSquare()
+            else
+                local keyboard = self.active_grid_view:showKeyboard(true)
+                self.active_puzzle:setActiveSquare(row_num, col_num)
             end
-            self.ActiveGridView:updateGrid(self.active_puzzle:getGrid(), clue)
+            self.active_grid_view:updateGrid(self.active_puzzle:getGrid(), clue)
             self:refreshGameView()
+        end,
+        add_chars_callback = function(chars)
+            self.active_puzzle:setLetterForGuess(chars, self.active_puzzle:getActiveSquare())
         end
     }
 end
 
 function Crossword:refreshGameView()
-    UIManager:show(self.ActiveGridView)
-    self.ActiveGridView:render()
+    self.active_grid_view:render()
+    UIManager:show(self.active_grid_view)
 end
 
 return Crossword

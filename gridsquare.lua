@@ -29,7 +29,7 @@ function GridSquare:init()
     self.dimen = Geom:new{w = self.width, h = self.height}
     -- Set up the right bg color, letter, etc.
     local bg_color = self.letter_value ~= "." and
-        Blitbuffer.COLOR_WHITE or
+        (self.state == "1" and Blitbuffer.COLOR_GRAY or Blitbuffer.COLOR_WHITE) or
         Blitbuffer.COLOR_BLACK
 
     self.letter_font_size = TextBoxWidget:getFontSizeToFitHeight(self.height, 1, 0.3)

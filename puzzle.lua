@@ -27,6 +27,8 @@ function Puzzle:init(json_object)
     self.size = json_object.size
     -- Initialize the solves.
     self.solves = {}
+    -- Initialize the player's inputs.
+    self.guesses = {}
     -- Create the down and across solves.
     self:createSolves(json_object.clues.down, json_object.answers.down, Solve.DOWN, json_object.gridnums)
     self:createSolves(json_object.clues.across, json_object.answers.across, Solve.ACROSS, json_object.gridnums)
@@ -64,6 +66,14 @@ function Puzzle:getGrid()
             local number = tonumber(grid_index) == tonumber(solve.grid_num) and
                 solve.clue_num or
                 ""
+            -- Check to see if the grid element should be set to active.
+            local state = tonumber(grid_index) ==
+                (self.active_square_index and self.active_square_index or -1) and
+                "1" or
+                ""
+            local letter = self.guesses[grid_index] and
+                self.guesses[grid_index] or
+                ""
             -- Check to see if the squares contains an entry for the given
             -- grid index. Positions in the table are used to indicate the index.
             -- So, something at squares[4] is the 4th square in the puzzle view, and should
@@ -72,19 +82,16 @@ function Puzzle:getGrid()
                 -- Make the initial element and add it to the list.
                 local grid_square = {
                     solve_indices = {solve_index},
-                    letter = string.sub(solve.word, i, i), -- Get first character of word,
-                    number = number
+                    --letter = string.sub(solve.word, i, i), -- Get first character of word,
                 }
                 grid[grid_index] = grid_square
             else
                 -- Since the square has been initialized, update the existing element.
                 table.insert(grid[grid_index].solve_indices, solve_index)
-                -- Set the number if it is not null. This is necessary to account for the
-                -- fact that the first direction processed will have already initialized
-                -- all of the squares.
-                if number ~= "" then
-                    grid[grid_index].number = number
-                end
+                -- Update the other attributes.
+                grid[grid_index].number = number
+                grid[grid_index].letter = letter
+                grid[grid_index].state = state
             end
         end
     end
@@ -125,6 +132,14 @@ function Puzzle:setActiveSquare(row, col)
     self.active_square_index = ((row - 1) * self.size.rows) + col
 end
 
+function Puzzle:getActiveSquare()
+    return self.active_square_index
+end
+
+function Puzzle:resetActiveSquare()
+    self.active_square_index = -1
+end
+
 function Puzzle:getSquareAtPos(row, col)
     local index = ((row - 1) * self.size.rows) + col
     return self.solves[index]
@@ -132,6 +147,10 @@ end
 
 function Puzzle:getSolveByIndex(index)
     return self.solves[index]
+end
+
+function Puzzle:setLetterForGuess(letter, active_square)
+    self.guesses[active_square] = string.upper(letter)
 end
 
 function Puzzle:getClueByPos(row, col, direction)
