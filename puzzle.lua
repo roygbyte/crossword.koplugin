@@ -126,7 +126,7 @@ function Puzzle:setActiveSquare(row, col)
 end
 
 function Puzzle:getSquareAtPos(row, col)
-    local index = ((row) * self.size.rows) + col
+    local index = ((row - 1) * self.size.rows) + col
     return self.solves[index]
 end
 
