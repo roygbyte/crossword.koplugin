@@ -6,12 +6,15 @@ local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local FrameContainer = require("ui/widget/container/framecontainer")
 local InputContainer = require("ui/widget/container/inputcontainer")
+local Keyboard = require("ui/widget/virtualkeyboard")
 local VerticalGroup = require("ui/widget/verticalgroup")
+local UIManager = require("ui/uimanager")
 local logger = require("logger")
 
 local GridRow = require("gridrow")
 local GridSquare = require("gridsquare")
 local GridClue = require("gridclue")
+local GridInput = require("gridinput")
 
 local GridView = InputContainer:new{
     width = nil,
@@ -99,6 +102,7 @@ function GridView:buildRow(squares, row_num)
             margin = self.square_margin,
             letter_value = square.letter,
             number_value = square.number,
+            state = square.state,
             row_num = row_num, -- we pass the row and col so that
             col_num = col_num, -- the tap callback can propagate values back
             screen_zone = {
@@ -114,6 +118,45 @@ function GridView:buildRow(squares, row_num)
     end
     row:update()
     return row
+end
+
+function GridView:showKeyboard(should_show_keyboard)
+    -- Init the keyboard if it doesn't exist.
+    if not self.keyboard then
+        self.keyboard = Keyboard:new{
+            keyboard_layer = keyboard_layer,
+            width = Screen:getWidth(),
+            inputbox = self,
+        }
+        self.keyboard.ges_events.Tap = {
+            GestureRange:new {
+                ges = "tap",
+                range = function()
+                    self:showKeyboard(false)
+                    return false
+                end
+            }
+        }
+    end
+    -- Determine what to do based on the value passed to this method.
+    if should_show_keyboard then
+        Device:startTextInput()
+        UIManager:show(self.keyboard)
+        UIManager:setDirty(self.keyboard, function()
+                return "ui", self.keyboard.dimen
+        end)
+    else
+        Device:stopTextInput()
+        UIManager:close(self.keyboard)
+    end
+    -- Return the keyboard in case we need to do something with it.
+    return self.keyboard
+end
+
+function GridView:addChars(chars)
+    if self.add_chars_callback then
+        self.add_chars_callback(chars)
+    end
 end
 
 return GridView
