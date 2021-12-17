@@ -121,6 +121,10 @@ function Puzzle:getGrid()
     return self.grid
 end
 
+function Puzzle:setActiveSquare(row, col)
+    self.active_square_index = ((row - 1) * self.size.rows) + col
+end
+
 function Puzzle:getSquareAtPos(row, col)
     local index = ((row) * self.size.rows) + col
     return self.solves[index]
