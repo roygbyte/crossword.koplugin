@@ -8,6 +8,7 @@ local Puzzle = {
         rows = nil,
     },
     grid = nil,
+    active_direction = nil,
 }
 
 function Puzzle:new(o)
@@ -59,6 +60,17 @@ function Puzzle:getGrid()
     -- called 'squares' which will eventually be passed to the view.
     local grid = {}
     for solve_index, solve in ipairs(self.solves) do
+        -- Check to see if active_square_index is contained within the grid indices AND
+        -- the solve's direction matches the active direction. If both conditions are true,
+        -- we should highlight the squares for the row or column area.
+        local row_state = nil
+        if solve.direction == self.active_direction then
+            for i, grid_index in ipairs(solve.grid_indices) do
+                if tonumber(self.active_square_index) == tonumber(grid_index) then
+                    row_state = "1"
+                end
+            end
+        end
         -- Each solve contains indices that point to the other squares where its letters
         -- are contained. Loop through the indices and build a square element.
         for i, grid_index in ipairs(solve.grid_indices) do
@@ -66,11 +78,11 @@ function Puzzle:getGrid()
             local number = tonumber(grid_index) == tonumber(solve.grid_num) and
                 solve.clue_num or
                 ""
-            -- Check to see if the grid element should be set to active.
-            local state = tonumber(grid_index) ==
-                (self.active_square_index and self.active_square_index or -1) and
-                "1" or
-                ""
+            -- Check to see if the grid element should be set to selected.
+            local state = tonumber(grid_index) == self.active_square_index and
+                "2" or
+                row_state
+            -- Set the letter, or not.
             local letter = self.guesses[grid_index] and
                 self.guesses[grid_index] or
                 ""
@@ -79,18 +91,23 @@ function Puzzle:getGrid()
             -- So, something at squares[4] is the 4th square in the puzzle view, and should
             -- include an index to the solve it is for.
             if not grid[grid_index] then
-                -- Make the initial element and add it to the list.
+                -- Make the initial element and add it to the list. Some attributes are only
+                -- set once (like the letter).
                 local grid_square = {
-                    solve_indices = {solve_index},
-                    --letter = string.sub(solve.word, i, i), -- Get first character of word,
+                    solve_indices = { solve_index },
+                    letter = letter,
                 }
                 grid[grid_index] = grid_square
             else
                 -- Since the square has been initialized, update the existing element.
                 table.insert(grid[grid_index].solve_indices, solve_index)
-                -- Update the other attributes.
-                grid[grid_index].number = number
-                grid[grid_index].letter = letter
+            end
+            -- Update the other attributes.
+            grid[grid_index].number = number
+            -- Updating state like this could overwrite a state value that was set by the
+            -- other direction of squares. So there needs to be a kind of conditional statement
+            -- that checks to see if state has a value.
+            if not grid[grid_index].state then
                 grid[grid_index].state = state
             end
         end
@@ -150,7 +167,17 @@ function Puzzle:getSolveByIndex(index)
 end
 
 function Puzzle:setLetterForGuess(letter, active_square)
-    self.guesses[active_square] = string.upper(letter)
+    self.guesses[active_square] = letter
+end
+
+function Puzzle:setActiveDirection(direction)
+    self.active_direction = direction
+end
+
+function Puzzle:getNextCluePos(row, col, direction)
+    ---@todo make this so the user can get the next clue without
+    -- having to click on the square
+    local current_clue = self.grid[row][col]
 end
 
 function Puzzle:getClueByPos(row, col, direction)

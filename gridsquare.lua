@@ -27,9 +27,17 @@ local GridSquare = InputContainer:new{
 function GridSquare:init()
     -- Set the dimensions.
     self.dimen = Geom:new{w = self.width, h = self.height}
+    -- The state bg is used to indicate which region is activated (state 1),
+    -- and which square is selected (state 2)
+    local state_bg_color
+    if self.state == "1" then
+        state_bg_color = Blitbuffer.COLOR_LIGHT_GRAY
+    elseif self.state == "2" then
+        state_bg_color = Blitbuffer.COLOR_DARK_GRAY
+    end
     -- Set up the right bg color, letter, etc.
     local bg_color = self.letter_value ~= "." and
-        (self.state == "1" and Blitbuffer.COLOR_GRAY or Blitbuffer.COLOR_WHITE) or
+        (state_bg_color and state_bg_color or Blitbuffer.COLOR_WHITE) or
         Blitbuffer.COLOR_BLACK
 
     self.letter_font_size = TextBoxWidget:getFontSizeToFitHeight(self.height, 1, 0.3)
@@ -95,6 +103,10 @@ function GridSquare:onTap(_, ges)
     if self.on_tap_callback then
         self.on_tap_callback(self.row_num, self.col_num)
     end
+end
+
+function GridSquare:onInputEvent()
+    logger.dbg("hiii")
 end
 
 return GridSquare

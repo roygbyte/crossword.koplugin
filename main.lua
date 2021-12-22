@@ -19,6 +19,7 @@ local _ = require("gettext")
 local Solve = require("solve")
 local GridView = require("gridview")
 local GridInput = require("gridinput")
+local GameView = require("gameview")
 
 local Crossword = WidgetContainer:new{
     name = "crossword",
@@ -51,8 +52,9 @@ function Crossword:getSubMenuItems()
         {
             text = _("Play"),
             callback = function()
-                self:initGameView()
-                self:refreshGameView()
+                self:loadGameView()
+                --self:initGameView()
+                --self:refreshGameView()
             end
         },
         {
@@ -91,6 +93,15 @@ function Crossword:setPuzzlesDirectory()
     self:lazyInitialization()
 end
 
+function Crossword:loadGameView()
+    local puzzle = self:loadPuzzle()
+    local game_view = GameView:new{
+        puzzle = puzzle
+    }
+    game_view:render()
+    UIManager:show(game_view)
+end
+
 function Crossword:loadPuzzle()
     local file_path = ("%s/%s"):format(self.puzzle_dir, "/1990/01/01.json")
     local file, err = io.open(file_path, "rb")
@@ -122,16 +133,14 @@ function Crossword:initGameView()
             -- a clue based on the active direction (i.e.: across or down)
             -- Then update the grid (@todo: display touch feedback) and the clue in
             -- the active grid view. Then refresh this view.
-            local clue = self.active_puzzle:getClueByPos(row_num, col_num, Solve.DOWN)
-            logger.dbg("main.lua -> on_tap_callback")
-            if not clue then
-                local keyboard = self.active_grid_view:showKeyboard(false)
+            local clue_value = self.active_puzzle:getClueByPos(row_num, col_num, Solve.DOWN)
+            if not clue_value then
                 self.active_puzzle:resetActiveSquare()
             else
-                local keyboard = self.active_grid_view:showKeyboard(true)
                 self.active_puzzle:setActiveSquare(row_num, col_num)
             end
-            self.active_grid_view:updateGrid(self.active_puzzle:getGrid(), clue)
+            self.active_grid_view:updateGrid(self.active_puzzle:getGrid())
+            self.active_grid_view:updateClue(clue_value)
             self:refreshGameView()
         end,
         add_chars_callback = function(chars)
