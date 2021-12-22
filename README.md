@@ -2,4 +2,4 @@
 
 Work-in-progress towards a KOReader-powered crossword plugin. `dev` branch tracks development.
 
-![kocrossword_wip](https://user-images.githubusercontent.com/82218266/146849025-b626cac0-a9fb-4a50-97ec-64ae4b0f4ab8.png)
+![2021_12_22-kocrossword](https://user-images.githubusercontent.com/82218266/147160993-e32bc981-aa4c-4e7a-a6d9-7038ecae052c.png)
