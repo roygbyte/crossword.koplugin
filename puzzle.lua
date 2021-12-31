@@ -162,6 +162,37 @@ function Puzzle:getSquareAtPos(row, col)
     return self.solves[index]
 end
 
+function Puzzle:getNextIndexForDirection(index, direction)
+    index = index + 1
+    local solve = self.solves[index]
+    -- If solve is nil, we're probably at the end of the list,
+    -- so call this method again from start of list (but we call the
+    -- method with '0' because the function will advance the index to 1.
+    if solve == nil then
+        return self:getNextIndexForDirection(0, direction)
+    end
+    -- If solve direction does not match desired direction, advance
+    -- the index and call this method again.
+    if solve.direction ~= direction then
+        return self:getNextIndexForDirection(index, direction)
+    end
+    -- If we made it this far then we have the next solve.
+    return solve
+end
+
+function Puzzle:getPrevIndexForDirection(index, direction)
+    index = index - 1
+    local solve = self.solves[index]
+    -- See sister method for explanation of logic.
+    if solve == nil then
+        return self:getPrevIndexForDirection(#self.solves, direction)
+    end
+    if solve.direction ~= direction then
+        return self:getPrevIndexForDirection(index, direction)
+    end
+    return solve
+end
+
 function Puzzle:getSolveByIndex(index)
     return self.solves[index]
 end
@@ -174,25 +205,51 @@ function Puzzle:setActiveDirection(direction)
     self.active_direction = direction
 end
 
+-- Given a grid position (row, col) and direction (across or down), find another grid
+-- position that corresponds to the next clue.
 function Puzzle:getNextCluePos(row, col, direction)
-    ---@todo make this so the user can get the next clue without
-    -- having to click on the square
-    local current_clue = self.grid[row][col]
+    local _, index = self:getSolveByPos(row, col, direction)
+    local next_solve = self:getNextIndexForDirection(index, direction)
+    local next_position = next_solve.grid_num
+    local next_row = math.ceil(next_position / self.size.rows)
+    local next_col = self.size.cols - ((next_row * self.size.rows) - next_position)
+    return next_row, next_col
 end
 
-function Puzzle:getClueByPos(row, col, direction)
-    local clue
+-- Given a grid position (row, col) and direction (across or down), find another grid
+-- position that corresponds to the next clue.
+function Puzzle:getPrevCluePos(row, col, direction)
+    local _, index = self:getSolveByPos(row, col, direction)
+    local prev_solve = self:getPrevIndexForDirection(index, direction)
+    local prev_position = prev_solve.grid_num
+    local prev_row = math.ceil(prev_position / self.size.rows)
+    local prev_col = self.size.cols - ((prev_row * self.size.rows) - prev_position)
+    return prev_row, prev_col
+end
+
+function Puzzle:getSolveByPos(row, col, direction)
+    local solve
+    local index
     local grid_elm = self.grid[row][col]
     if not grid_elm or not grid_elm.solve_indices then
         return nil
     end
     for i, solve_index in ipairs(grid_elm.solve_indices) do
-        local solve = self.solves[solve_index]
-        if not clue and solve.direction == direction then
-            clue = solve.clue
+        local temp_solve = self.solves[solve_index]
+        if not solve and temp_solve.direction == direction then
+            index = solve_index
+            solve = temp_solve
         end
     end
-    return clue
+    return solve, index
+end
+
+function Puzzle:getClueByPos(row, col, direction)
+    local solve = self:getSolveByPos(row, col, direction)
+    if not solve then
+        return nil
+    end
+    return solve.clue
 end
 
 return Puzzle

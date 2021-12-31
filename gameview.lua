@@ -127,6 +127,23 @@ function GameView:addChars(chars)
     return true
 end
 
+-- This method (and its sister method, GameView:leftChar) should advance the player's active
+-- square to the next square that belongs to the next clue. The clue should advance either
+--down or across depending on which direction is active.
+function GameView:rightChar()
+    local row, col = self.puzzle:getNextCluePos(self.active_row_num, self.active_col_num, self.active_direction)
+    self.active_row_num = row
+    self.active_col_num = col
+    self:refreshGameView()
+end
+
+function GameView:leftChar()
+    local row, col = self.puzzle:getPrevCluePos(self.active_row_num, self.active_col_num, self.active_direction)
+    self.active_row_num = row
+    self.active_col_num = col
+    self:refreshGameView()
+end
+
 function GameView:advancePointer()
     if self.active_direction == Solve.DOWN then
         self.active_row_num = self.active_row_num + 1
