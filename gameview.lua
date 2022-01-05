@@ -146,9 +146,14 @@ end
 
 function GameView:advancePointer()
     if self.active_direction == Solve.DOWN then
-        self.active_row_num = self.active_row_num + 1
+        if self.active_row_num >= self.puzzle.size.rows then
+            self.active_row_num = 1
+            self.active_col_num = self.active_col_num + 1
+        else
+            self.active_row_num = self.active_row_num + 1
+        end
     elseif self.active_direction == Solve.ACROSS then
-        if (self.active_col_num) >= self.puzzle.size.cols then
+        if self.active_col_num >= self.puzzle.size.cols then
             self.active_col_num = 1
             self.active_row_num = self.active_row_num + 1
         else
