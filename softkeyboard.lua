@@ -324,7 +324,7 @@ function VirtualKeyboard:init()
         self.uwrap_func = nil
     end
     -- Load the custom keyboard layout for Crossword.
-    local keyboard = require("crossword_keyboard")
+    local keyboard = require("softkeyboard_layout")
     self.KEYS = keyboard.keys
     self.width = Screen:getWidth()
     -- Override user keyboard settings. Set a custom, narrow key height.
