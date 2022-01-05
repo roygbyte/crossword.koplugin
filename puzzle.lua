@@ -95,6 +95,7 @@ function Puzzle:getGrid()
                 -- set once (like the letter).
                 local grid_square = {
                     solve_indices = { solve_index },
+                    number = number,
                     letter = letter,
                 }
                 grid[grid_index] = grid_square
@@ -102,8 +103,11 @@ function Puzzle:getGrid()
                 -- Since the square has been initialized, update the existing element.
                 table.insert(grid[grid_index].solve_indices, solve_index)
             end
-            -- Update the other attributes.
-            grid[grid_index].number = number
+            -- Update the number, but only if it is not an empty value. Otherwise the down number will
+            -- overwrite the across numbers.
+            if number ~= "" then
+                grid[grid_index].number = number
+            end
             -- Updating state like this could overwrite a state value that was set by the
             -- other direction of squares. So there needs to be a kind of conditional statement
             -- that checks to see if state has a value.
@@ -199,6 +203,14 @@ end
 
 function Puzzle:setLetterForGuess(letter, active_square)
     self.guesses[active_square] = letter
+end
+
+function Puzzle:getLetterForSquare(active_square)
+    if not self.guesses[active_square] then
+        return ""
+    else
+        return self.guesses[active_square]
+    end
 end
 
 function Puzzle:setActiveDirection(direction)

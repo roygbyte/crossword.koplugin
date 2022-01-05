@@ -161,8 +161,31 @@ function GameView:advancePointer()
     -- end
 end
 
+function GameView:regressPointer()
+    if self.active_direction == Solve.DOWN then
+        self.active_row_num = self.active_row_num -1
+    elseif self.active_direction == Solve.ACROSS then
+        if (self.active_col_num) >= self.puzzle.size.cols then
+            self.active_col_num = 1
+            self.active_row_num = self.active_row_num - 1
+        else
+            self.active_col_num = self.active_col_num - 1
+        end
+    end
+    -- Check to see if advancement landed on a non-active grid square.
+    -- if not self.puzzle:getClueByPos(self,active_row_num, self.active_col_num) then
+    --     self:advancePointer()
+    -- end
+end
+
+-- This method should 1) delete the character in the active square, 2) move to the previous
+-- square in the row or column.
 function GameView:delChar()
-    self.puzzle:setLetterForGuess("", self.puzzle:getActiveSquare())
+    if self.puzzle:getLetterForSquare(self.puzzle:getActiveSquare()) ~= "" then
+        self.puzzle:setLetterForGuess("", self.puzzle:getActiveSquare())
+    else
+        self:regressPointer()
+    end
     self:refreshGameView()
 end
 
