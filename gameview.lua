@@ -149,6 +149,9 @@ function GameView:advancePointer()
         if self.active_row_num >= self.puzzle.size.rows then
             self.active_row_num = 1
             self.active_col_num = self.active_col_num + 1
+            if self.active_col_num > self.puzzle.size.cols then
+                self.active_col_num = 1
+            end
         else
             self.active_row_num = self.active_row_num + 1
         end
@@ -156,31 +159,45 @@ function GameView:advancePointer()
         if self.active_col_num >= self.puzzle.size.cols then
             self.active_col_num = 1
             self.active_row_num = self.active_row_num + 1
+            if self.active_row_num > self.puzzle.size.rows then
+                self.active_row_num = 1
+            end
         else
             self.active_col_num = self.active_col_num + 1
         end
     end
     -- Check to see if advancement landed on a non-active grid square.
-    -- if not self.puzzle:getClueByPos(self,active_row_num, self.active_col_num) then
-    --     self:advancePointer()
-    -- end
+    if not self.puzzle:getClueByPos(self.active_row_num, self.active_col_num, self.active_direction) then
+        self:advancePointer()
+    end
 end
 
 function GameView:regressPointer()
     if self.active_direction == Solve.DOWN then
-        self.active_row_num = self.active_row_num -1
-    elseif self.active_direction == Solve.ACROSS then
-        if (self.active_col_num) >= self.puzzle.size.cols then
-            self.active_col_num = 1
+        if self.active_row_num <= 1 then
+            self.active_row_num = self.puzzle.size.rows
+            self.active_col_num = self.active_col_num - 1
+            if self.active_col_num < 1 then
+                self.active_col_num = self.puzzle.size.cols
+            end
+        else
             self.active_row_num = self.active_row_num - 1
+        end
+    elseif self.active_direction == Solve.ACROSS then
+        if self.active_col_num <= 1 then
+            self.active_col_num = self.puzzle.size.cols
+            self.active_row_num = self.active_row_num - 1
+            if self.active_row_num < 1 then
+                self.active_row_num = self.puzzle.size.rows
+            end
         else
             self.active_col_num = self.active_col_num - 1
         end
     end
     -- Check to see if advancement landed on a non-active grid square.
-    -- if not self.puzzle:getClueByPos(self,active_row_num, self.active_col_num) then
-    --     self:advancePointer()
-    -- end
+    if not self.puzzle:getClueByPos(self.active_row_num, self.active_col_num, self.active_direction) then
+        self:regressPointer()
+    end
 end
 
 -- This method should 1) delete the character in the active square, 2) move to the previous
