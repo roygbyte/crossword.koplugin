@@ -119,39 +119,4 @@ function Crossword:loadPuzzle()
     return puzzle
 end
 
-function Crossword:initGameView()
-    self.active_puzzle = self:loadPuzzle()
-    self.active_grid_view = GridView:new{
-        size = {
-            cols = self.active_puzzle.size.cols,
-            rows = self.active_puzzle.size.rows
-        },
-        grid = self.active_puzzle:getGrid(),
-        active_clue = "hint",
-        on_tap_callback = function(row_num, col_num)
-            -- On tap, pass the row and col nums to the active puzzle and return
-            -- a clue based on the active direction (i.e.: across or down)
-            -- Then update the grid (@todo: display touch feedback) and the clue in
-            -- the active grid view. Then refresh this view.
-            local clue_value = self.active_puzzle:getClueByPos(row_num, col_num, Solve.DOWN)
-            if not clue_value then
-                self.active_puzzle:resetActiveSquare()
-            else
-                self.active_puzzle:setActiveSquare(row_num, col_num)
-            end
-            self.active_grid_view:updateGrid(self.active_puzzle:getGrid())
-            self.active_grid_view:updateClue(clue_value)
-            self:refreshGameView()
-        end,
-        add_chars_callback = function(chars)
-            self.active_puzzle:setLetterForGuess(chars, self.active_puzzle:getActiveSquare())
-        end
-    }
-end
-
-function Crossword:refreshGameView()
-    self.active_grid_view:render()
-    UIManager:show(self.active_grid_view)
-end
-
 return Crossword
