@@ -101,12 +101,6 @@ function GridView:buildRow(squares, row_num)
             state = square.state,
             row_num = row_num, -- we pass the row and col so that
             col_num = col_num, -- the tap callback can propagate values back
-            screen_zone = {
-                ratio_x = (self.square_width * (col_num)) / self.dimen.w,
-                ratio_y = (self.square_height * (row_num)) / self.dimen.h,
-                ratio_w = ((self.square_width * (col_num)) + self.square_width ) / self.dimen.w,
-                ratio_h = ((self.square_height * (row_num)) + self.square_height) / self.dimen.h,
-            },
             on_tap_callback = function(row_num, col_num)
                 self.on_tap_callback(row_num, col_num)
             end
