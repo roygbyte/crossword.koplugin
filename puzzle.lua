@@ -1,8 +1,8 @@
 local logger = require("logger")
 local Solve = require("solve")
+local State = require("state")
 
-local Puzzle = {
-    json_object = nil,
+local Puzzle = State:new{
     size = {
         cols = nil,
         rows = nil,
