@@ -1,3 +1,4 @@
+local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
@@ -31,12 +32,24 @@ function GameView:init()
     }
     -- Initialize the grid.
     self.puzzle:getGrid()
+    -- Load the state of the puzzle
+    --- @todo: This should be implemented differently... see puzzle:init FMI
+    self.puzzle:load()
     -- Set the active clue to first grid element.
     self.active_row_num = 1
     self.active_col_num = 1
     self.active_clue = self.puzzle:getClueByPos(1,1, self.active_direction) or ""
     -- Set the initial active direction
     self.puzzle:setActiveDirection(Solve.DOWN)
+    -- Initialize gesture events.
+    if Device:isTouchDevice() then
+        self.ges_events.Swipe = {
+            GestureRange:new{
+                ges = "swipe",
+                range = self.dimen,
+            }
+        }
+    end
 end
 
 function GameView:render()
@@ -219,6 +232,16 @@ function GameView:toggleDirection()
     end
     self.puzzle:setActiveDirection(self.active_direction)
     self:refreshGameView()
+end
+
+function GameView:onSwipe(arg, ges_ev)
+    local direction = BD.flipDirectionIfMirroredUILayout(ges_ev.direction)
+    if direction == "south" then
+        --- @todo: On south-bound swipe show a menu. The menu will have options for:
+        --- 1) exiting the game.
+        --- 2) checking a square.
+        --- 3) ...
+    end
 end
 
 return GameView
