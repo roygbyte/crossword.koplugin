@@ -11,9 +11,12 @@ local InfoMessage = require("ui/widget/infomessage")
 local LuaSettings = require("frontend/luasettings")
 local UIManager = require("ui/uimanager")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
+local KeyValuePage = require("ui/widget/keyvaluepage")
 local LuaSettings = require("frontend/luasettings")
 local logger = require("logger")
+local lfs = require("libs/libkoreader-lfs")
 local json = require("json")
+local util = require("util")
 local _ = require("gettext")
 
 local Solve = require("solve")
@@ -25,9 +28,9 @@ local Crossword = WidgetContainer:new{
     name = "crossword",
     settings = nil,
     settings_keys = {
-        puzzles_dir = "puzzles_dir"
+        puzzle_library_dir = "puzzle_library_dir"
     },
-    puzzles_dir = nil,
+    puzzle_library_dir = nil,
     active_puzzle = nil,
     ActiveGridView = nil,
 }
@@ -50,11 +53,18 @@ function Crossword:getSubMenuItems()
     self:lazyInitialization()
     return {
         {
-            text = _("Play"),
+            text = _("Continue last puzzle"),
             callback = function()
-                self:loadGameView()
+                --- @todo: fetch last puzzle
+                self:showGameView()
                 --self:initGameView()
                 --self:refreshGameView()
+            end
+        },
+        {
+            text = _("Puzzle Library"),
+            callback = function()
+                self:showLibraryDirectory(self.puzzle_dir)
             end
         },
         {
@@ -86,15 +96,14 @@ function Crossword:setPuzzlesDirectory()
     local downloadmgr = require("ui/downloadmgr")
     downloadmgr:new{
         onConfirm = function(path)
-            self.settings:saveSetting(self.settings_keys.puzzles_dir, ("%s/"):format(path))
+            self.settings:saveSetting(self.settings_keys.puzzle_library_dir, ("%s/"):format(path))
             self.settings:flush()
         end
     }:chooseDir()
     self:lazyInitialization()
 end
 
-function Crossword:loadGameView()
-    local puzzle = self:loadPuzzle()
+function Crossword:showGameView(puzzle)
     local game_view = GameView:new{
         puzzle = puzzle
     }
@@ -102,9 +111,8 @@ function Crossword:loadGameView()
     UIManager:show(game_view)
 end
 
-function Crossword:loadPuzzle()
-    local file_path = ("%s/%s"):format(self.puzzle_dir, "/1990/01/01.json")
-    local file, err = io.open(file_path, "rb")
+function Crossword:loadPuzzle(path_to_file)
+    local file, err = io.open(path_to_file, "rb")
 
     if not file then
         return _("Could not load crossword")
@@ -119,39 +127,73 @@ function Crossword:loadPuzzle()
     return puzzle
 end
 
-function Crossword:initGameView()
-    self.active_puzzle = self:loadPuzzle()
-    self.active_grid_view = GridView:new{
-        size = {
-            cols = self.active_puzzle.size.cols,
-            rows = self.active_puzzle.size.rows
-        },
-        grid = self.active_puzzle:getGrid(),
-        active_clue = "hint",
-        on_tap_callback = function(row_num, col_num)
-            -- On tap, pass the row and col nums to the active puzzle and return
-            -- a clue based on the active direction (i.e.: across or down)
-            -- Then update the grid (@todo: display touch feedback) and the clue in
-            -- the active grid view. Then refresh this view.
-            local clue_value = self.active_puzzle:getClueByPos(row_num, col_num, Solve.DOWN)
-            if not clue_value then
-                self.active_puzzle:resetActiveSquare()
-            else
-                self.active_puzzle:setActiveSquare(row_num, col_num)
-            end
-            self.active_grid_view:updateGrid(self.active_puzzle:getGrid())
-            self.active_grid_view:updateClue(clue_value)
-            self:refreshGameView()
-        end,
-        add_chars_callback = function(chars)
-            self.active_puzzle:setLetterForGuess(chars, self.active_puzzle:getActiveSquare())
+function Crossword:getFilesInDirectory(path_to_dir)
+    local items = {}
+
+    local ok, iter, dir_obj = pcall(lfs.dir, path_to_dir)
+    if not ok then
+        return items
+    end
+
+    for f in iter,  dir_obj do
+        local attributes = lfs.attributes(("%s/%s"):format(path_to_dir, f))
+        if attributes.mode == "directory"
+            or attributes.mode == "file"
+            and f ~= "."
+            and f ~= ".."
+            and util.stringEndsWith(f, ".json")
+        then
+            local item = {
+                filename = f,
+                mode = attributes.mode,
+                path_to_dir = path_to_dir
+            }
+            table.insert(items, item)
         end
-    }
+    end
+
+    return items
 end
 
-function Crossword:refreshGameView()
-    self.active_grid_view:render()
-    UIManager:show(self.active_grid_view)
+function Crossword:processDirectoryItem(item)
+    local path_to_file = ("%s/%s"):format(item.path_to_dir, item.filename)
+    if item.mode == "directory" then
+        self:showLibraryDirectory(path_to_file)
+    else
+        local puzzle = self:loadPuzzle(path_to_file)
+        self:showGameView(puzzle)
+    end
+end
+-- This is an awful name for this method signature. We are not loading anything...
+function Crossword:showLibraryDirectory(path_to_directory)
+    -- Get the directory items.
+    local directory_items = self:getFilesInDirectory(path_to_directory)
+    -- Build the kv pairs to send to the view.
+    local kv_pairs = {}
+    for key, value in ipairs(directory_items) do
+        -- Set default title to the filename. If the file is a directory, this value won't change.
+        local title = value.filename
+        -- Otherwise, set the title to the puzzle's title.
+        if value.mode == "file" then
+            local path_to_puzzle = ("%s/%s"):format(value.path_to_dir, value.filename)
+            local puzzle = self:loadPuzzle(path_to_puzzle)
+            --- @todo: Check if loaded puzzle is valid.
+            --- @todo: Check if loaded puzzle exists in an in-progress state.
+            title = puzzle.title
+        end
+        local pair = {
+            title,
+            "",
+            callback = function()
+                self:processDirectoryItem(value)
+            end
+        }
+        table.insert(kv_pairs, pair)
+    end
+    UIManager:show(KeyValuePage:new{
+        title = "Puzzles",
+        kv_pairs = kv_pairs
+    })
 end
 
 return Crossword

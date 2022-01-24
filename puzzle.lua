@@ -30,6 +30,9 @@ function Puzzle:init(json_object)
     self.solves = {}
     -- Initialize the player's inputs.
     self.guesses = {}
+    -- Initialize the puzzle's title, etc.
+    self.title = json_object.title
+    self.editor = json_object.editor
     -- Create the down and across solves.
     self:createSolves(json_object.clues.down, json_object.answers.down, Solve.DOWN, json_object.gridnums)
     self:createSolves(json_object.clues.across, json_object.answers.across, Solve.ACROSS, json_object.gridnums)
