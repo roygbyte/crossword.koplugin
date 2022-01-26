@@ -134,7 +134,7 @@ function GameView:addChars(chars)
     else
         self.puzzle:setLetterForGuess(chars, self.puzzle:getActiveSquare())
         -- Advance the pointer
-        self:advancePointer()
+        self:movePointerForward()
         self:refreshGameView()
     end
     return true
@@ -157,7 +157,7 @@ function GameView:leftChar()
     self:refreshGameView()
 end
 
-function GameView:advancePointer()
+function GameView:movePointerForward()
     if self.active_direction == Solve.DOWN then
         if self.active_row_num >= self.puzzle.size.rows then
             self.active_row_num = 1
@@ -181,11 +181,11 @@ function GameView:advancePointer()
     end
     -- Check to see if advancement landed on a non-active grid square.
     if not self.puzzle:getClueByPos(self.active_row_num, self.active_col_num, self.active_direction) then
-        self:advancePointer()
+        self:movePointerForward()
     end
 end
 
-function GameView:regressPointer()
+function GameView:movePointerBackward()
     if self.active_direction == Solve.DOWN then
         if self.active_row_num <= 1 then
             self.active_row_num = self.puzzle.size.rows
@@ -209,7 +209,7 @@ function GameView:regressPointer()
     end
     -- Check to see if advancement landed on a non-active grid square.
     if not self.puzzle:getClueByPos(self.active_row_num, self.active_col_num, self.active_direction) then
-        self:regressPointer()
+        self:movePointerBackward()
     end
 end
 
@@ -219,7 +219,7 @@ function GameView:delChar()
     if self.puzzle:getLetterForSquare(self.puzzle:getActiveSquare()) ~= "" then
         self.puzzle:setLetterForGuess("", self.puzzle:getActiveSquare())
     else
-        self:regressPointer()
+        self:movePointerBackward()
     end
     self:refreshGameView()
 end
