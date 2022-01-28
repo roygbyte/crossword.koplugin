@@ -20,14 +20,14 @@ function State:init()
 end
 
 function State:load()
-    local state = self.lua_settings:child("puzzle_id")
+    local state = self.lua_settings:child(self.id)
     for key, value in pairs(state.data) do
         self[key] = value
     end
 end
 
 function State:save()
-    self.lua_settings:saveSetting("puzzle_id", self)
+    self.lua_settings:saveSetting(self.id, self)
     self.lua_settings:flush()
 end
 
