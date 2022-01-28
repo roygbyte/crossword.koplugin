@@ -1,4 +1,7 @@
+local md5 = require("ffi/sha2").md5
 local logger = require("logger")
+
+local Guess = require("guess")
 local Solve = require("solve")
 local State = require("state")
 
@@ -33,6 +36,7 @@ function Puzzle:init(json_object)
     -- Initialize the puzzle's title, etc.
     self.title = json_object.title
     self.editor = json_object.editor
+    self.id = md5(json_object.title)
     -- Create the down and across solves.
     self:createSolves(json_object.clues.down, json_object.answers.down, Solve.DOWN, json_object.gridnums)
     self:createSolves(json_object.clues.across, json_object.answers.across, Solve.ACROSS, json_object.gridnums)
@@ -86,9 +90,7 @@ function Puzzle:getGrid()
                 "2" or
                 row_state
             -- Set the letter, or not.
-            local letter = self.guesses[grid_index] and
-                self.guesses[grid_index] or
-                ""
+            local letter = self:getLetterForSquare(grid_index)
             -- Check to see if the squares contains an entry for the given
             -- grid index. Positions in the table are used to indicate the index.
             -- So, something at squares[4] is the 4th square in the puzzle view, and should
@@ -204,15 +206,18 @@ function Puzzle:getSolveByIndex(index)
     return self.solves[index]
 end
 
-function Puzzle:setLetterForGuess(letter, active_square)
-    self.guesses[active_square] = letter
+function Puzzle:setLetterForGuess(letter, grid_elm)
+    if not self.guesses[grid_elm] then
+        self.guesses[grid_elm] = {}
+    end
+    self.guesses[grid_elm].letter = letter
 end
 
-function Puzzle:getLetterForSquare(active_square)
-    if not self.guesses[active_square] then
+function Puzzle:getLetterForSquare(grid_elm)
+    if not self.guesses[grid_elm] then
         return ""
     else
-        return self.guesses[active_square]
+        return self.guesses[grid_elm].letter or ""
     end
 end
 
