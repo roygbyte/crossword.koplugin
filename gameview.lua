@@ -1,5 +1,6 @@
 local BD = require("ui/bidi")
 local Blitbuffer = require("ffi/blitbuffer")
+local ButtonDialog = require("ui/widget/buttondialog")
 local CenterContainer = require("ui/widget/container/centercontainer")
 local Device = require("device")
 local Screen = Device.screen
@@ -11,6 +12,7 @@ local InputContainer = require("ui/widget/container/inputcontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local UIManager = require("ui/uimanager")
 local logger = require("logger")
+local _ = require("gettext")
 
 local GridView = require("gridview")
 local SoftKeyboard = require("softkeyboard")
@@ -109,6 +111,10 @@ function GameView:render()
 end
 
 function GameView:refreshGameView()
+    -- Refresh is basically called after every action, so makes sense
+    -- to have the save method called from here.
+    self.puzzle:save()
+
     local clue_value = self.puzzle:getClueByPos(self.active_row_num, self.active_col_num, self.active_direction)
     if not clue_value then
         self.puzzle:resetActiveSquare()
@@ -237,10 +243,55 @@ end
 function GameView:onSwipe(arg, ges_ev)
     local direction = BD.flipDirectionIfMirroredUILayout(ges_ev.direction)
     if direction == "south" then
-        --- @todo: On south-bound swipe show a menu. The menu will have options for:
-        --- 1) exiting the game.
-        --- 2) checking a square.
-        --- 3) ...
+        -- See readerhighlight.lua for more ideas about how to use ButtonDialog.
+        local game_dialog
+        game_dialog = ButtonDialog:new{
+            buttons = {
+                {
+                    {
+                        text = _("Check Square"),
+                        enabled = false,
+                        callback = function()
+
+                        end,
+                    },
+                    {
+                        text = _("Check Word"),
+                        enabled = false,
+                        callback = function()
+
+                        end,
+                    },
+                    {
+                        text = _("Check Puzzle"),
+                        callback = function()
+                            self.puzzle:checkPuzzle()
+                            UIManager:close(game_dialag)
+                            self:refreshGameView()
+                        end,
+                    },
+                },
+                {
+                    {
+                        text = _("Saved"),
+                        enabled = false,
+                        callback = function()
+
+                        end,
+                    },
+                    {
+                        text = _("Exit"),
+                        callback = function()
+
+                        end,
+                    },
+                }
+            },
+            tap_close_callback = function()
+                UIManager:close(game_dialag)
+            end,
+        }
+        UIManager:show(game_dialog)
     end
 end
 
