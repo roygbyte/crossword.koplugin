@@ -99,6 +99,7 @@ function GridView:buildRow(squares, row_num)
             letter_value = square.letter,
             number_value = square.number,
             state = square.state,
+            status = square.status,
             row_num = row_num, -- we pass the row and col so that
             col_num = col_num, -- the tap callback can propagate values back
             on_tap_callback = function(row_num, col_num)

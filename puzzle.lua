@@ -85,12 +85,13 @@ function Puzzle:getGrid()
             local number = tonumber(grid_index) == tonumber(solve.grid_num) and
                 solve.clue_num or
                 ""
+            -- Set the letter, or not.
+            local letter = self:getLetterForSquare(grid_index)
             -- Check to see if the grid element should be set to selected.
             local state = tonumber(grid_index) == self.active_square_index and
                 "2" or
                 row_state
-            -- Set the letter, or not.
-            local letter = self:getLetterForSquare(grid_index)
+            local status = self:getStatusForSquare(grid_index)
             -- Check to see if the squares contains an entry for the given
             -- grid index. Positions in the table are used to indicate the index.
             -- So, something at squares[4] is the 4th square in the puzzle view, and should
@@ -118,6 +119,9 @@ function Puzzle:getGrid()
             -- that checks to see if state has a value.
             if not grid[grid_index].state then
                 grid[grid_index].state = state
+            end
+            if not grid[grid_index].status then
+                grid[grid_index].status = status
             end
         end
     end
@@ -210,6 +214,13 @@ function Puzzle:setLetterForGuess(letter, grid_elm)
     if not self.guesses[grid_elm] then
         self.guesses[grid_elm] = {}
     end
+    -- If the incoming letter is different than the letter already set,
+    -- then the status of the guess can be reset.
+    if self.guesses[grid_elm].letter then
+        if self.guesses[grid_elm].letter ~= letter then
+            self.guesses[grid_elm].status = Guess.STATUS.UNCHECKED
+        end
+    end
     self.guesses[grid_elm].letter = letter
 end
 
@@ -218,6 +229,14 @@ function Puzzle:getLetterForSquare(grid_elm)
         return ""
     else
         return self.guesses[grid_elm].letter or ""
+    end
+end
+
+function Puzzle:getStatusForSquare(grid_elm)
+    if not self.guesses[grid_elm] then
+        return nil
+    else
+        return self.guesses[grid_elm].status
     end
 end
 
@@ -270,6 +289,48 @@ function Puzzle:getClueByPos(row, col, direction)
         return nil
     end
     return solve.clue
+end
+
+function Puzzle:isSquareCorrect(square)
+    local guess = self:getLetterForSquare(square)
+
+    for i, solve in ipairs(self.solves) do
+        for k, grid_index in ipairs(solve.grid_indices) do
+            if square == grid_index then
+                -- get the word character at index k and compare with guess.
+                local char = string.sub(solve.word, k, 1)
+                if char == guess then
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
+function Puzzle:checkPuzzle()
+    local grid_elm_results = {}
+    for i, solve in ipairs(self.solves) do
+        for char_pos, grid_index in ipairs(solve.grid_indices) do
+            if self.guesses[grid_index] and not grid_elm_results[grid_index] then
+                logger.dbg("Checking " .. grid_index)
+                local letter_guess = self.guesses[grid_index].letter
+                local letter_solve = string.sub(solve.word, char_pos, 1)
+                local guess_status = (letter_guess == letter_solve) and
+                    Guess.STATUS.CHECKED_CORRECT or
+                    Guess.STATUS.CHECKED_INCORRECT
+                grid_elm_results[grid_index] = guess_status
+            else
+                logger.dbg("Skipping: Already checked or no guess found " .. grid_index)
+            end
+        end
+    end
+    for grid_elm, status in pairs(grid_elm_results) do
+        if self.guesses[grid_elm] then
+            self.guesses[grid_elm].status = status
+        end
+    end
+    logger.dbg(self.guesses)
 end
 
 return Puzzle

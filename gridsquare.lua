@@ -5,12 +5,14 @@ local Font = require("ui/font")
 local Geom = require("ui/geometry")
 local GestureRange = require("ui/gesturerange")
 local FrameContainer = require("ui/widget/container/framecontainer")
+local LineWidget = require("ui/widget/linewidget")
 local OverlapGroup = require("ui/widget/overlapgroup")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local TextBoxWidget = require("ui/widget/textboxwidget")
-
 local logger = require("logger")
+
+local Guess = require("guess")
 
 local GridSquare = InputContainer:new{
     height = nil,
@@ -39,6 +41,18 @@ function GridSquare:init()
     local bg_color = self.letter_value ~= "." and
         (state_bg_color and state_bg_color or Blitbuffer.COLOR_WHITE) or
         Blitbuffer.COLOR_BLACK
+    -- The status bg is used to indicate whether the letter is correct or incorrect.
+    local status_bg_color, status_height = 0
+    if self.status == Guess.STATUS.CHECKED_INCORRECT then
+        status_bg_color = Blitbuffer.COLOR_BLACK
+        status_height = 2
+    elseif self.letter_value == "." then
+        -- Set the color to black on non-letter squares
+        status_bg_color = Blitbuffer.COLOR_BLACK
+    else
+        -- Everything else goes white
+        status_bg_color = Blitbuffer.COLOR_WHITE
+    end
 
     self.letter_font_size = TextBoxWidget:getFontSizeToFitHeight(self.height, 1, 0.3)
     self.number_font_size = self.letter_font_size / 2
@@ -58,6 +72,14 @@ function GridSquare:init()
         fgcolor = Blitbuffer.COLOR_BLACK,
         padding = 0,
         bold = true,
+    }
+    -- Maybe a number that corresponds to a question.
+    self.status_widget = LineWidget:new{
+        background = status_bg_color,
+        dimen = Geom:new{
+            w = self.width - 5,
+            h = status_height,
+        }
     }
     -- Register the event listener
     self.ges_events.Tap = {
@@ -83,6 +105,15 @@ function GridSquare:init()
             dimen = { w = self.width - self.margin, h = self.height - self.margin },
             padding = 0,
             margin = 0,
+            -- Add thet status indicator
+            CenterContainer:new{
+                dimen = Geom:new{
+                    w = self.width,
+                    h = self.height,
+                },
+                padding = 0,
+                self.status_widget,
+            },
             -- Keep the letter centered
             CenterContainer:new{
                 dimen = Geom:new{

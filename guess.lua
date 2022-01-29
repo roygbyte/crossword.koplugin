@@ -1,6 +1,7 @@
 local Guess = {}
 
-Guess.STATE = {
+Guess.STATUS = {
+    UNCHECKED = 0,
     CHECKED_CORRECT = 1,
     CHECKED_INCORRECT = 2,
 }
