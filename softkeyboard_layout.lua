@@ -126,52 +126,52 @@ local hsh = en_popup.hsh
 local hs2 = en_popup.hs2
 
 return {
-    min_layer = 1,
-    max_layer = 1,
-    -- Width of any key can be modified by adding "width = 1.0, " in the list.
-    keys = {
-        { --   R    r    S    s
-            { _Q_ },
-            { _W_ },
-            { _E_ },
-            { _R_ },
-            { _T_ },
-            { _Y_ },
-            { _U_ },
-            { _I_ },
-            { _O_ },
-            { _P_ },
-        },
-        -- Third row
-        { --   R    r    S    s
-            { _A_ },
-            { _S_ },
-            { _D_ },
-            { _F_ },
-            { _G_ },
-            { _H_ },
-            { _J_ },
-            { _K_ },
-            { _L_ },
-        },
-        -- Fourth row
-        { --   R    r    S    s
-            { _Z_ },
-            { _X_ },
-            { _C_ },
-            { _V_ },
-            { _B_ },
-            { _N_ },
-            { _M_ },
-            { label = "", width = 1.5, }, -- Backspace
-        },
-        -- Fifth row
-        -- { --   R    r    S    s
-        --     { label = "↑", }, -- Arrow left
-        --     { label = "↓", }, -- Arrow right
-        --     { label = "_", " ", " ", " ", " ", width = 3.0, }, -- Spacebar
-        --     { label = "←", }, -- Arrow left
-        --     { label = "→", }, -- Arrow right
-        -- },
-    },
+   min_layer = 1,
+   max_layer = 1,
+   -- Width of any key can be modified by adding "width = 1.0, " in the list.
+   keys = {
+      { --   R    r    S    s
+         { _Q_ },
+         { _W_ },
+         { _E_ },
+         { _R_ },
+         { _T_ },
+         { _Y_ },
+         { _U_ },
+         { _I_ },
+         { _O_ },
+         { _P_ },
+      },
+      -- Third row
+      { --   R    r    S    s
+         { _A_ },
+         { _S_ },
+         { _D_ },
+         { _F_ },
+         { _G_ },
+         { _H_ },
+         { _J_ },
+         { _K_ },
+         { _L_ },
+      },
+      -- Fourth row
+      { --   R    r    S    s
+         { _Z_ },
+         { _X_ },
+         { _C_ },
+         { _V_ },
+         { _B_ },
+         { _N_ },
+         { _M_ },
+         { label = "", width = 1.5, }, -- Backspace
+      },
+      -- Fifth row
+      -- { --   R    r    S    s
+      --     { label = "↑", }, -- Arrow left
+      --     { label = "↓", }, -- Arrow right
+      --     { label = "_", " ", " ", " ", " ", width = 3.0, }, -- Spacebar
+      --     { label = "←", }, -- Arrow left
+      --     { label = "→", }, -- Arrow right
+      -- },
+   },
 }
