@@ -113,8 +113,6 @@ end
 function GameView:refreshGameView()
     -- Refresh is basically called after every action, so makes sense
     -- to have the save method called from here.
-    self.puzzle:save()
-
     local clue_value = self.puzzle:getClueByPos(self.active_row_num, self.active_col_num, self.active_direction)
     if not clue_value then
         self.puzzle:resetActiveSquare()
@@ -244,8 +242,13 @@ function GameView:onSwipe(arg, ges_ev)
     local direction = BD.flipDirectionIfMirroredUILayout(ges_ev.direction)
     if direction == "south" then
         -- See readerhighlight.lua for more ideas about how to use ButtonDialog.
-        local game_dialog
-        game_dialog = ButtonDialog:new{
+       self:showGameMenu()
+    end
+end
+
+function GameView:showGameMenu()
+   local game_dialog
+   game_dialog = ButtonDialog:new{
             buttons = {
                 {
                     {
@@ -273,26 +276,26 @@ function GameView:onSwipe(arg, ges_ev)
                 },
                 {
                     {
-                        text = _("Saved"),
-                        enabled = false,
+                        text = _("Save"),
                         callback = function()
-
+                           self.puzzle:save()
+                           UIManager:close(game_dialog)
                         end,
                     },
                     {
-                        text = _("Exit"),
-                        callback = function()
-
-                        end,
+                       text = _("Exit"),
+                       enabled = false,
+                       callback = function()
+                          -- Don't know how to do this yet.
+                       end,
                     },
                 }
             },
             tap_close_callback = function()
-                UIManager:close(game_dialag)
+                UIManager:close(game_dialog)
             end,
         }
         UIManager:show(game_dialog)
-    end
 end
 
 return GameView
