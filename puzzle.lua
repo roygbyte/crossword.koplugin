@@ -21,6 +21,22 @@ function Puzzle:new(o)
    return o
 end
 
+function Puzzle:initializePuzzle(path_to_file)
+   local file, err = io.open(path_to_file, "rb")
+   
+   if not file then
+      return _("Could not load crossword")
+   end
+   
+   local file_content = file:read("*all")
+   file:close()
+
+   local Puzzle = require("puzzle")
+   local puzzle = Puzzle:new{}
+   puzzle:init(json.decode(file_content))
+   return puzzle
+end
+
 function Puzzle:init(json_object)
    -- Lazy error checking
    if not json_object then
