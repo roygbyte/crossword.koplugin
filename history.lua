@@ -68,4 +68,9 @@ function History:save()
 
 end
 
+function History:clear()
+   self.lua_settings:saveSetting(History.STACK, {})
+   self.lua_settings:flush()
+end
+
 return History

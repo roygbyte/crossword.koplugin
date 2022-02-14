@@ -21,6 +21,7 @@ local GridView = require("gridview")
 local GridInput = require("gridinput")
 local GameView = require("gameview")
 local History = require("history")
+local HistoryView = require("historyview")
 local Library = require("library")
 local Puzzle = require("puzzle")
 
@@ -71,20 +72,20 @@ function Crossword:getSubMenuItems()
          }
       }
    }
-   -- If the user has started a puzzle, we'll add a new option to the menu.
-   local history = History:new{}
-   if #history:get() > 0 then
-      local history_item = history:get()[1]
-      table.insert(sub_menu_items, 1,
-         {
-            text = _(("Continue \"%s\""):format(history_item['puzzle_title'])),
-            callback = function()
-               local puzzle = Puzzle:loadById(history_item['puzzle_id'])            
-               self:showGameView(puzzle)
-            end
-         }
-      )
-   end
+
+   local history_view = HistoryView:new{}
+   local continue_puzzle_item = history_view:getContinueButton(function(history_item)
+         local puzzle = Puzzle:loadById(history_item['puzzle_id'])            
+         self:showGameView(puzzle)
+   end)
+   local history_menu_items = history_view:getMenuItems(function(history_item)
+         local puzzle = Puzzle:loadById(history_item['puzzle_id'])            
+         self:showGameView(puzzle)
+   end)
+
+   if continue_puzzle_item then table.insert(sub_menu_items, 1, continue_puzzle_item) end
+   if history_menu_items then table.insert(sub_menu_items, history_menu_items[1]) end
+   
    return sub_menu_items
 end
 
