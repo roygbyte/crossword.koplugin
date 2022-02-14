@@ -20,6 +20,7 @@ local Solve = require("solve")
 local GridView = require("gridview")
 local GridInput = require("gridinput")
 local GameView = require("gameview")
+local History = require("history")
 local Library = require("library")
 local Puzzle = require("puzzle")
 
@@ -28,7 +29,6 @@ local Crossword = WidgetContainer:new{
    settings = nil,
    settings_keys = {
       puzzle_library_dir = "puzzle_library_dir",
-      puzzle_history_list = {},
    },
    puzzle_library_dir = nil,
    active_puzzle = nil,
@@ -42,7 +42,6 @@ end
 function Crossword:addToMainMenu(menu_items)
    menu_items.crossword = {
       text = _("Crossword"),
-      -- a callback when tapping
       sub_item_table_func = function()
          return self:getSubMenuItems()
       end
@@ -51,16 +50,8 @@ end
 
 function Crossword:getSubMenuItems()
    self:lazyInitialization()
-   return {
-      {
-         text = _("Continue last puzzle"),
-         callback = function()
-            --- @todo: fetch last puzzle
-            self:showGameView()
-            --self:initGameView()
-            --self:refreshGameView()
-         end
-      },
+   -- This is the standard menu.
+   local sub_menu_items = {
       {
          text = _("Puzzle Library"),
          callback = function()
@@ -80,6 +71,21 @@ function Crossword:getSubMenuItems()
          }
       }
    }
+   -- If the user has started a puzzle, we'll add a new option to the menu.
+   local history = History:new{}
+   if #history:get() > 0 then
+      local history_item = history:get()[1]
+      table.insert(sub_menu_items, 1,
+         {
+            text = _(("Continue \"%s\""):format(history_item['puzzle_title'])),
+            callback = function()
+               local puzzle = Puzzle:loadById(history_item['puzzle_id'])            
+               self:showGameView(puzzle)
+            end
+         }
+      )
+   end
+   return sub_menu_items
 end
 
 function Crossword:lazyInitialization()
@@ -90,10 +96,6 @@ function Crossword:lazyInitialization()
       self.settings:readSetting(self.settings_keys.puzzle_dir) or
       ("%s/plugins/crossword.koplugin/nyt_crosswords"):format(
          DataStorage:getFullDataDir())
-   -- Load the puzzle history
-   self.puzzle_history = self.settings_keys.puzzle_history_list and
-      self.settings:readSetting(self.settings_keys.puzzle_history_list) or
-      {}
 end
 
 function Crossword:setPuzzlesDirectory()
@@ -123,11 +125,13 @@ function Crossword:showLibraryView()
    local library = Library:new{
       puzzle_dir = self.puzzle_dir,
       onSelectPuzzle = function(item)
-         self:showGameView(
-            Puzzle:initializePuzzle(("%s/%s"):format(item.path_to_dir, item.filename))
-         )
-      end
-   }
+         local puzzle =  Puzzle:initializePuzzle(("%s/%s"):format(item.path_to_dir, item.filename))
+         local history = History:new{}
+         history:init()
+         history:add(puzzle.id, puzzle.title)
+         self:showGameView(puzzle)
+   end}
+   
    library:showDirectoryView(self.puzzle_dir)
 end
 --[[--

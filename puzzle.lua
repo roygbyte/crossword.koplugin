@@ -34,6 +34,16 @@ function Puzzle:initializePuzzle(path_to_file)
    local Puzzle = require("puzzle")
    local puzzle = Puzzle:new{}
    puzzle:init(json.decode(file_content))
+   puzzle:load()
+   
+   return puzzle
+end
+
+function Puzzle:loadById(puzzle_id)
+   local puzzle = Puzzle:new{
+      id = puzzle_id
+   }
+   puzzle:load()
    return puzzle
 end
 
