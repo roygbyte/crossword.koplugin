@@ -23,11 +23,11 @@ end
 
 function Puzzle:initializePuzzle(path_to_file)
    local file, err = io.open(path_to_file, "rb")
-   
+
    if not file then
       return _("Could not load crossword")
    end
-   
+
    local file_content = file:read("*all")
    file:close()
 
@@ -35,7 +35,7 @@ function Puzzle:initializePuzzle(path_to_file)
    local puzzle = Puzzle:new{}
    puzzle:init(json.decode(file_content))
    puzzle:load()
-   
+
    return puzzle
 end
 
@@ -306,7 +306,11 @@ function Puzzle:getSolveByPos(row, col, direction)
          solve = temp_solve
       end
    end
-   return solve, index
+   -- if not solve and index then
+      -- return nil
+   -- else
+      return solve, index
+   -- end
 end
 
 function Puzzle:getClueByPos(row, col, direction)
@@ -357,6 +361,40 @@ function Puzzle:checkPuzzle()
       end
    end
    logger.dbg(self.guesses)
+end
+
+--[[--
+Checks a given square, found by providing the row and column index.
+A square is deemed "correct" if the guess provided by the user matches the
+letter contained within the solve.
+]]
+function Puzzle:checkSquare(row, col)
+   -- Get the solve at this position. It doesn't matter which way we go (across or down),
+   -- as long as we get a result.
+   local solve = self:getSolveByPos(row, col, Solve.DOWN) or
+      self:getSolveByPos(row, col, Solve.ACROSS)
+   -- Get the grid index, found by some not-so-fancy math, and then get the corresponding guess.
+   local grid_index_to_check = ((row - 1) * self.size.rows) + col
+   local guess = self.guesses[grid_index_to_check]
+   -- Get out of here if there's nothing to check.
+   if not guess then
+      return nil
+   end
+   local letter_guess = guess.letter
+   local grid_index = 1
+   -- Loop through the grid_indices of this solve. When the grid index to check matches the
+   -- current grid index, we will have found the right letter to check.
+   -- This could probably be replaced by a while loop for better readability. And also refactored
+   -- along with Puzzle:checkPuzzle()...
+   for char_pos, grid_index in ipairs(solve.grid_indices) do
+      if grid_index_to_check == grid_index then
+         local letter_solve = string.sub(solve.word, char_pos, 1)
+         local guess_status = (letter_guess == letter_solve) and
+            Guess.STATUS.CHECKED_CORRECT or
+            Guess.STATUS.CHECKED_INCORRECT
+         self.guesses[grid_index_to_check].status = guess_status
+      end
+   end
 end
 
 return Puzzle

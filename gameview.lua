@@ -34,10 +34,6 @@ function GameView:init()
    }
    -- Initialize the grid.
    self.puzzle:getGrid()
-   -- Load the state of the puzzle
-   --- @todo: This should be implemented differently... see puzzle:init FMI
-   self.puzzle:load()
-   -- Set the active clue to first grid element.
    self.active_row_num = 1
    self.active_col_num = 1
    self.active_clue = self.puzzle:getClueByPos(1,1, self.active_direction) or ""
@@ -244,20 +240,22 @@ function GameView:onSwipe(arg, ges_ev)
    local direction = BD.flipDirectionIfMirroredUILayout(ges_ev.direction)
    if direction == "south" then
       -- See readerhighlight.lua for more ideas about how to use ButtonDialog.
-      self:showGameMenu()
+      self:showGameMenu()      
    end
 end
 
 function GameView:showGameMenu()
    local game_dialog
+   -- @todo: add the puzzle's title to this menu?
    game_dialog = ButtonDialog:new{
       buttons = {
          {
             {
                text = _("Check Square"),
-               enabled = false,
                callback = function()
-
+                  self.puzzle:checkSquare(self.active_row_num, self.active_col_num)
+                  UIManager:close(game_dialog)
+                  self:refreshGameView()
                end,
             },
             {
@@ -286,7 +284,6 @@ function GameView:showGameMenu()
             },
             {
                text = _("Exit"),
-               enabled = false,
                callback = function()
                   -- Don't know how to do this yet.
                end,
