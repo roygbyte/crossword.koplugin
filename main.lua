@@ -43,6 +43,7 @@ end
 function Crossword:addToMainMenu(menu_items)
    menu_items.crossword = {
       text = _("Crossword"),
+      sorting_hint = "tools",
       sub_item_table_func = function()
          return self:getSubMenuItems()
       end
