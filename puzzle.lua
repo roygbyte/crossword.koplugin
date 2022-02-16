@@ -292,7 +292,7 @@ function Puzzle:getPrevCluePos(row, col, direction)
    return prev_row, prev_col
 end
 
-function Puzzle:getSolveByPos(row, col, direction)
+function Puzzle:getSolveByPos(row, col, direction)   
    local solve
    local index
    local grid_elm = self.grid[row][col]
@@ -345,11 +345,14 @@ function Puzzle:checkPuzzle()
          if self.guesses[grid_index] and not grid_elm_results[grid_index] then
             logger.dbg("Checking " .. grid_index)
             local letter_guess = self.guesses[grid_index].letter
-            local letter_solve = string.sub(solve.word, char_pos, char_pos)
-            local guess_status = (letter_guess == letter_solve) and
-               Guess.STATUS.CHECKED_CORRECT or
-               Guess.STATUS.CHECKED_INCORRECT
-            grid_elm_results[grid_index] = guess_status
+            -- Only check the guess if it is not nil or an empty string            
+            if letter_guess ~= "" or letter_guess ~= nil then
+               local letter_solve = string.sub(solve.word, char_pos, char_pos)
+               local guess_status = (letter_guess == letter_solve) and
+                  Guess.STATUS.CHECKED_CORRECT or
+                  Guess.STATUS.CHECKED_INCORRECT
+               grid_elm_results[grid_index] = guess_status
+            end
          else
             logger.dbg("Skipping: Already checked or no guess found " .. grid_index)
          end
@@ -360,7 +363,6 @@ function Puzzle:checkPuzzle()
          self.guesses[grid_elm].status = status
       end
    end
-   logger.dbg(self.guesses)
 end
 
 --[[--
@@ -380,7 +382,10 @@ function Puzzle:checkSquare(row, col)
    if not guess then
       return nil
    end
-   local letter_guess = guess.letter
+   local letter_guess = (guess.letter ~= "" and guess.letter ~= nil) and guess.letter or nil
+   if not letter_guess then
+      return nil
+   end
    local grid_index = 1
    -- Loop through the grid_indices of this solve. When the grid index to check matches the
    -- current grid index, we will have found the right letter to check.
