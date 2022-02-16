@@ -136,7 +136,7 @@ function GameView:addChars(chars)
    else
       self.puzzle:setLetterForGuess(chars, self.puzzle:getActiveSquare())
       -- Advance the pointer
-      self:movePointerForward()
+      self:movePointer(1)
       self:refreshGameView()
    end
    return true
@@ -158,60 +158,31 @@ function GameView:leftChar()
    self.active_col_num = col
    self:refreshGameView()
 end
-
-function GameView:movePointerForward()
+-- This method should be written so as to advance the pointer to the next
+-- solve, and not the next square.
+function GameView:movePointer(steps)
+   -- Temp variables for the row and col nums are used here because the values produced by the
+   -- next if/else block results in two courses of actions. 
+   local temp_row_num = self.active_row_num
+   local temp_col_num = self.active_col_num
    if self.active_direction == Solve.DOWN then
-      if self.active_row_num >= self.puzzle.size.rows then
-         self.active_row_num = 1
-         self.active_col_num = self.active_col_num + 1
-         if self.active_col_num > self.puzzle.size.cols then
-            self.active_col_num = 1
-         end
-      else
-         self.active_row_num = self.active_row_num + 1
-      end
+      temp_row_num = temp_row_num + steps
    elseif self.active_direction == Solve.ACROSS then
-      if self.active_col_num >= self.puzzle.size.cols then
-         self.active_col_num = 1
-         self.active_row_num = self.active_row_num + 1
-         if self.active_row_num > self.puzzle.size.rows then
-            self.active_row_num = 1
-         end
-      else
-         self.active_col_num = self.active_col_num + 1
-      end
+      temp_col_num = temp_col_num + steps
    end
    -- Check to see if advancement landed on a non-active grid square.
-   if not self.puzzle:getClueByPos(self.active_row_num, self.active_col_num, self.active_direction) then
-      self:movePointerForward()
-   end
-end
-
-function GameView:movePointerBackward()
-   if self.active_direction == Solve.DOWN then
-      if self.active_row_num <= 1 then
-         self.active_row_num = self.puzzle.size.rows
-         self.active_col_num = self.active_col_num - 1
-         if self.active_col_num < 1 then
-            self.active_col_num = self.puzzle.size.cols
-         end
-      else
-         self.active_row_num = self.active_row_num - 1
-      end
-   elseif self.active_direction == Solve.ACROSS then
-      if self.active_col_num <= 1 then
-         self.active_col_num = self.puzzle.size.cols
-         self.active_row_num = self.active_row_num - 1
-         if self.active_row_num < 1 then
-            self.active_row_num = self.puzzle.size.rows
-         end
-      else
-         self.active_col_num = self.active_col_num - 1
-      end
-   end
-   -- Check to see if advancement landed on a non-active grid square.
-   if not self.puzzle:getClueByPos(self.active_row_num, self.active_col_num, self.active_direction) then
-      self:movePointerBackward()
+   -- If it did, then move the user to the next solve.
+   if steps >= 1 and (temp_row_num > self.puzzle.size.rows or
+      temp_col_num > self.puzzle.size.cols or      
+      not self.puzzle:getClueByPos(temp_row_num, temp_col_num, self.active_direction)) then
+      self:rightChar()
+   elseif steps <= -1 and (temp_row_num < 1 or
+      temp_col_num < 1 or
+      not self.puzzle:getClueByPos(temp_row_num, temp_col_num, self.active_direction)) then
+      self:leftChar()
+   else      
+      self.active_row_num = temp_row_num
+      self.active_col_num = temp_col_num
    end
 end
 
@@ -221,7 +192,7 @@ function GameView:delChar()
    if self.puzzle:getLetterForSquare(self.puzzle:getActiveSquare()) ~= "" then
       self.puzzle:setLetterForGuess("", self.puzzle:getActiveSquare())
    else
-      self:movePointerBackward()
+      self:movePointer(-1)
    end
    self:refreshGameView()
 end
@@ -240,12 +211,17 @@ function GameView:onSwipe(arg, ges_ev)
    local direction = BD.flipDirectionIfMirroredUILayout(ges_ev.direction)
    if direction == "south" then
       -- See readerhighlight.lua for more ideas about how to use ButtonDialog.
-      self:showGameMenu()      
+      self:showGameMenu()
+   elseif direction == "east" then
+      self:leftChar()
+   elseif direction == "west" then
+      self:rightChar()
    end
 end
 
 function GameView:showGameMenu()
    local game_dialog
+   local game_view = self
    -- @todo: add the puzzle's title to this menu?
    game_dialog = ButtonDialog:new{
       buttons = {
@@ -285,7 +261,9 @@ function GameView:showGameMenu()
             {
                text = _("Exit"),
                callback = function()
-                  -- Don't know how to do this yet.
+                  self.puzzle:save()     
+                  UIManager:close(game_dialog)
+                  UIManager:close(game_view)
                end,
             },
          }
