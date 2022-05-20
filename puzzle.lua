@@ -1,5 +1,6 @@
 local md5 = require("ffi/sha2").md5
 local logger = require("logger")
+local json = require("json")
 
 local Guess = require("guess")
 local Solve = require("solve")
@@ -30,7 +31,7 @@ function Puzzle:initializePuzzle(path_to_file)
 
    local file_content = file:read("*all")
    file:close()
-
+   
    local Puzzle = require("puzzle")
    local puzzle = Puzzle:new{}
    puzzle:init(json.decode(file_content))
@@ -185,7 +186,7 @@ function Puzzle:getGrid()
 end
 
 function Puzzle:setActiveSquare(row, col)
-   self.active_square_index = ((row - 1) * self.size.rows) + col
+   self.active_square_index = self:getIndexFromCoordinates(row, col)
 end
 
 function Puzzle:getActiveSquare()
@@ -197,8 +198,19 @@ function Puzzle:resetActiveSquare()
 end
 
 function Puzzle:getSquareAtPos(row, col)
-   local index = ((row - 1) * self.size.rows) + col
+   local index = self:getIndexFromCoordinates(row, col) --((row - 1) * self.size.rows) + col
    return self.solves[index]
+end
+
+function Puzzle:getIndexFromCoordinates(row, col)
+   local index = col + ((row - 1) * self.size.cols)
+   return index
+end
+
+function Puzzle:getCoordinatesFromIndex(index)
+   local row = math.ceil(index / self.size.cols)
+   local col = index - (self.size.cols * (row - 1))
+   return row, col
 end
 
 function Puzzle:getNextIndexForDirection(index, direction)
@@ -233,7 +245,8 @@ function Puzzle:getPrevIndexForDirection(index, direction)
 end
 
 function Puzzle:getSolveByIndex(index)
-   return self.solves[index]
+   local row, col = self:getCoordinatesFromIndex(index)
+   return self:getSolveByPos(row, col, Solve.DOWN)
 end
 
 function Puzzle:setLetterForGuess(letter, grid_elm)
@@ -275,10 +288,7 @@ end
 function Puzzle:getNextCluePos(row, col, direction)
    local _, index = self:getSolveByPos(row, col, direction)
    local next_solve = self:getNextIndexForDirection(index, direction)
-   local next_position = next_solve.grid_num
-   local next_row = math.ceil(next_position / self.size.rows)
-   local next_col = self.size.cols - ((next_row * self.size.rows) - next_position)
-   return next_row, next_col
+   return self:getCoordinatesFromIndex(next_solve.grid_num) -- Returns row and col
 end
 
 -- Given a grid position (row, col) and direction (across or down), find another grid
@@ -286,13 +296,10 @@ end
 function Puzzle:getPrevCluePos(row, col, direction)
    local _, index = self:getSolveByPos(row, col, direction)
    local prev_solve = self:getPrevIndexForDirection(index, direction)
-   local prev_position = prev_solve.grid_num
-   local prev_row = math.ceil(prev_position / self.size.rows)
-   local prev_col = self.size.cols - ((prev_row * self.size.rows) - prev_position)
-   return prev_row, prev_col
+   return self:getCoordinatesFromIndex(prev_solve.grid_num) -- Returns row and col
 end
 
-function Puzzle:getSolveByPos(row, col, direction)   
+function Puzzle:getSolveByPos(row, col, direction)
    local solve
    local index
    local grid_elm = self.grid[row][col]
@@ -321,9 +328,28 @@ function Puzzle:getClueByPos(row, col, direction)
    return solve.clue
 end
 
+function Puzzle:revealSquare(index)
+   local solve = self:getSolveByIndex(index)
+   -- map grid index to the letters
+   local letter
+   for position, grid_index in ipairs(solve.grid_indices) do
+      if index == grid_index then
+         letter = string.sub(solve.word, position, position)
+      end
+   end
+   if letter then
+      self:setLetterForGuess(letter, index)
+   end
+   return letter
+end
+
 function Puzzle:isSquareCorrect(square)
    local guess = self:getLetterForSquare(square)
 
+   if guess == nil or guess == "" then
+      return false
+   end
+   
    for i, solve in ipairs(self.solves) do
       for k, grid_index in ipairs(solve.grid_indices) do
          if square == grid_index then
@@ -343,10 +369,10 @@ function Puzzle:checkPuzzle()
    for i, solve in ipairs(self.solves) do
       for char_pos, grid_index in ipairs(solve.grid_indices) do
          if self.guesses[grid_index] and not grid_elm_results[grid_index] then
-            logger.dbg("Checking " .. grid_index)
             local letter_guess = self.guesses[grid_index].letter
+            logger.dbg(letter_guess)
             -- Only check the guess if it is not nil or an empty string            
-            if letter_guess ~= "" or letter_guess ~= nil then
+            if letter_guess ~= "" and letter_guess ~= nil then
                local letter_solve = string.sub(solve.word, char_pos, char_pos)
                local guess_status = (letter_guess == letter_solve) and
                   Guess.STATUS.CHECKED_CORRECT or
@@ -375,8 +401,7 @@ function Puzzle:checkSquare(row, col)
    -- as long as we get a result.
    local solve = self:getSolveByPos(row, col, Solve.DOWN) or
       self:getSolveByPos(row, col, Solve.ACROSS)
-   -- Get the grid index, found by some not-so-fancy math, and then get the corresponding guess.
-   local grid_index_to_check = ((row - 1) * self.size.rows) + col
+   local grid_index_to_check = self:getIndexFromCoordinates(row, col)
    local guess = self.guesses[grid_index_to_check]
    -- Get out of here if there's nothing to check.
    if not guess then
