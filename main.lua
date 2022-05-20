@@ -76,16 +76,19 @@ function Crossword:getSubMenuItems()
 
    local history_view = HistoryView:new{}
    local continue_puzzle_item = history_view:getContinueButton(function(history_item)
-         local puzzle = Puzzle:loadById(history_item['puzzle_id'])            
+         local puzzle = Puzzle:loadById(history_item['puzzle_id'])
          self:showGameView(puzzle)
    end)
    local history_menu_items = history_view:getMenuItems(function(history_item)
-         local puzzle = Puzzle:loadById(history_item['puzzle_id'])            
+         local puzzle = Puzzle:loadById(history_item['puzzle_id'])
+         local history = History:new{}
+         history:init()
+         history:add(puzzle.id, puzzle.title)
          self:showGameView(puzzle)
    end)
 
    if continue_puzzle_item then table.insert(sub_menu_items, 1, continue_puzzle_item) end
-   if history_menu_items then table.insert(sub_menu_items, history_menu_items[1]) end
+   if history_menu_items then table.insert(sub_menu_items, 2, history_menu_items[1]) end
    
    return sub_menu_items
 end
