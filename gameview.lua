@@ -160,11 +160,13 @@ function GameView:leftChar()
 end
 -- This method should be written so as to advance the pointer to the next
 -- solve, and not the next square.
+-- Can reliably accept 1 or -1. Doesn't work well for other numbers.
 function GameView:movePointer(steps)
    -- Temp variables for the row and col nums are used here because the values produced by the
    -- next if/else block results in two courses of actions. 
    local temp_row_num = self.active_row_num
    local temp_col_num = self.active_col_num
+
    if self.active_direction == Solve.DOWN then
       temp_row_num = temp_row_num + steps
    elseif self.active_direction == Solve.ACROSS then
@@ -176,10 +178,14 @@ function GameView:movePointer(steps)
       temp_col_num > self.puzzle.size.cols or      
       not self.puzzle:getClueByPos(temp_row_num, temp_col_num, self.active_direction)) then
       self:rightChar()
+      steps = steps - 1 
+      self:movePointer(steps)
    elseif steps <= -1 and (temp_row_num < 1 or
       temp_col_num < 1 or
       not self.puzzle:getClueByPos(temp_row_num, temp_col_num, self.active_direction)) then
       self:leftChar()
+      steps = steps + 1
+      self:movePointer(steps)
    else      
       self.active_row_num = temp_row_num
       self.active_col_num = temp_col_num
@@ -247,6 +253,32 @@ function GameView:showGameMenu()
                   self.puzzle:checkPuzzle()
                   UIManager:close(game_dialag)
                   self:refreshGameView()
+               end,
+            },
+         },
+         {
+            {
+               text = _("Reveal Square"),
+               callback = function()
+                  self.puzzle:revealSquare(
+                     self.puzzle:getIndexFromCoordinates(self.active_row_num, self.active_col_num)
+                  )
+                  UIManager:close(game_dialog)
+                  self:refreshGameView()
+               end,
+            },
+            {
+               text = _("Reveal Word"),
+               enabled = false,
+               callback = function()
+
+               end,
+            },
+            {
+               text = _("Reveal Puzzle"),
+               enabled = false,
+               callback = function()
+                  
                end,
             },
          },
