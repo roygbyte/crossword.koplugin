@@ -14,7 +14,6 @@ local SoftKeyboard = require("softkeyboard")
 local GridRow = require("gridrow")
 local GridSquare = require("gridsquare")
 local GridClue = require("gridclue")
-local GridInput = require("gridinput")
 
 local GridView = InputContainer:new{
    width = nil,
@@ -112,7 +111,6 @@ function GridView:buildRow(squares, row_num)
 end
 
 function GridView:addChars(chars)
-   logger.dbg("GridView:addChars " .. chars)
    if self.add_chars_callback then
       self.add_chars_callback(chars)
    end

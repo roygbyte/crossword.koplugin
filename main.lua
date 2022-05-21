@@ -18,7 +18,6 @@ local _ = require("gettext")
 
 local Solve = require("solve")
 local GridView = require("gridview")
-local GridInput = require("gridinput")
 local GameView = require("gameview")
 local History = require("history")
 local HistoryView = require("historyview")
