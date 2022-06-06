@@ -307,4 +307,12 @@ function GameView:showGameMenu()
    UIManager:show(game_dialog)
 end
 
+function GameView:onKeyPress(key)
+   if key["RPgFwd"] then
+      self:rightChar()
+   elseif key["RPgBack"] then
+      self:leftChar()
+   end
+end
+
 return GameView
