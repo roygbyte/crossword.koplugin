@@ -16,7 +16,7 @@ local KeyboardLayoutDialog = require("ui/widget/keyboardlayoutdialog")
 local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local TextBoxWidget = require("ui/widget/textboxwidget")
-local TimeVal = require("ui/timeval")
+local time = require("ui/time")
 local UIManager = require("ui/uimanager")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
@@ -341,7 +341,7 @@ function VirtualKeyboard:init()
    self:render()
    -- Not sure what this does.
    self.tap_interval_override = G_reader_settings:readSetting("ges_tap_interval_on_keyboard", 0)
-   self.tap_interval_override = TimeVal:new{ usec = self.tap_interval_override }
+   self.tap_interval_override = time.ms(self.tap_interval_override)
 end
 
 function VirtualKeyboard:render(keys_layout, clue_layout)

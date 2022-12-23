@@ -14,7 +14,7 @@ local logger = require("logger")
 
 local Guess = require("guess")
 
-local GridSquare = InputContainer:new{
+local GridSquare = InputContainer:extend{
    height = nil,
    width = nil,
    margin = nil,
