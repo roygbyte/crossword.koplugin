@@ -38,6 +38,7 @@ local VirtualKey = InputContainer:new{
    keyboard = nil,
    callback = nil,
    bg_color = nil,
+   fg_color = nil,
    -- This is to inhibit the key's own refresh (useful to avoid conflicts on Layer changing keys)
    skiptap = nil,
    skiphold = nil,
@@ -92,6 +93,7 @@ function VirtualKey:init()
       text = self.label,
       face = self.face,
       bold = self.bold or false,
+      fgcolor = self.fg_color
    }
    -- Make long labels fit by decreasing font size
    local max_width = self.width - 2*self.bordersize - 2*Size.padding.small
@@ -103,6 +105,7 @@ function VirtualKey:init()
          text = self.label,
          face = Font:getFace(self.face.orig_font, new_size),
          bold = self.bold or false,
+         fgcolor = self.fg_color
       }
    end
 
@@ -354,7 +357,7 @@ function VirtualKeyboard:render(keys_layout, clue_layout)
    local keyboard_frame = FrameContainer:new{
       margin = 0,
       bordersize = Size.border.default,
-      background = G_reader_settings:nilOrTrue("keyboard_key_border") and Blitbuffer.COLOR_LIGHT_GRAY or Blitbuffer.COLOR_WHITE,
+      background = self.dark_mode and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_LIGHT_GRAY,
       radius = 0,
       padding = self.padding,
       allow_mirroring = false,
@@ -389,11 +392,15 @@ function VirtualKeyboard:buildClue(clue_value)
    local h_key_padding = HorizontalSpan:new{width = self.key_padding}
    local v_key_padding = VerticalSpan:new{width = self.key_padding}
 
+   local bg_color = self.dark_mode and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_LIGHT_GRAY
+   local fg_color = self.dark_mode and Blitbuffer.COLOR_WHITE or Blitbuffer.COLOR_BLACK
+
    local virtual_key_left = VirtualKey:new{
       key = "←",
       key_chars = {"←"},
       label = "←",
-      bg_color = Blitbuffer.COLOR_LIGHT_GRAY,
+      bg_color = bg_color,
+      fg_color = fg_color,
       keyboard = self,
       width = self.base_key_width,
       height = self.base_key_height,
@@ -402,7 +409,8 @@ function VirtualKeyboard:buildClue(clue_value)
       key = "→",
       key_chars = {"→"},
       label = "→",
-      bg_color = Blitbuffer.COLOR_LIGHT_GRAY,
+      bg_color = bg_color,
+      fg_color = fg_color,
       keyboard = self,
       width = self.base_key_width,
       height = self.base_key_height,
@@ -412,7 +420,8 @@ function VirtualKeyboard:buildClue(clue_value)
       key = "direction",
       key_chars = {"direction"},
       label = clue_value,
-      bg_color = Blitbuffer.COLOR_LIGHT_GRAY,
+      bg_color = bg_color,
+      fg_color = fg_color,
       keyboard = self,
       width = clue_row_width,
       height = self.base_key_height,
@@ -434,6 +443,9 @@ function VirtualKeyboard:buildKeys()
    local h_key_padding = HorizontalSpan:new{width = self.key_padding}
    local v_key_padding = VerticalSpan:new{width = self.key_padding}
    local vertical_group = VerticalGroup:new{ allow_mirroring = false }
+
+   local bg_color = self.dark_mode and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_WHITE
+   local fg_color = self.dark_mode and Blitbuffer.COLOR_WHITE or Blitbuffer.COLOR_BLACK
    -- Loop through each key row.
    for i = 1, #self.KEYS do
       local horizontal_group = HorizontalGroup:new{ allow_mirroring = false }
@@ -464,6 +476,8 @@ function VirtualKeyboard:buildKeys()
             key_chars = key_chars,
             icon = self.KEYS[i][j].icon,
             label = label,
+            bg_color = bg_color,
+            fg_color = fg_color,
             alt_label = alt_label,
             bold = self.KEYS[i][j].bold,
             keyboard = self,

@@ -13,6 +13,7 @@ local VerticalGroup = require("ui/widget/verticalgroup")
 local UIManager = require("ui/uimanager")
 local logger = require("logger")
 local _ = require("gettext")
+local ffi = require("ffi")
 
 local GridView = require("gridview")
 local SoftKeyboard = require("softkeyboard")
@@ -25,6 +26,7 @@ local GameView = InputContainer:new{
    active_direction = Solve.DOWN,
    active_row_num = nil,
    active_col_num = nil,
+   dark_mode = nil,
 }
 
 function GameView:init()
@@ -56,6 +58,7 @@ function GameView:render()
       width = Screen:getWidth(),
       clue_value = self.active_clue,
       inputbox = self,
+      dark_mode = self.dark_mode,
    }
    -- Calculate grid height. Note that grid_height should not exceed screen width.
    local screen_h_minus_keyboard_h = Screen:getHeight() - self.keyboard_view.dimen.h
@@ -71,6 +74,7 @@ function GameView:render()
          rows = self.puzzle.size.rows
       },
       grid = self.puzzle:getGrid(),
+      dark_mode = self.dark_mode,
       on_tap_callback = function(row_num, col_num)
          -- On tap, pass the row and col nums to the active puzzle and return
          -- a clue based on the active direction (i.e.: across or down)
@@ -83,16 +87,19 @@ function GameView:render()
       end,
    }
    -- Build the container.
+
+   local gray = ffi.typeof("Color8")(0x22)
+
    self[1] = FrameContainer:new{
       width = self.dimen.w,
       height = self.dimen.h,
       padding = 0,
       margin = 0,
       bordersize = 0,
-      background = Blitbuffer.COLOR_BLACK,
+      background = (self.dark_mode and gray or Blitbuffer.COLOR_BLACK),
       VerticalGroup:new{
          align = "center",
-         background = Blitbuffer.COLOR_GRAY,
+         background = (self.dark_mode and gray or Blitbuffer.COLOR_GRAY),
          CenterContainer:new{
             dimen = Geom:new{
                w = self.dimen.w,
@@ -163,7 +170,7 @@ end
 -- Can reliably accept 1 or -1. Doesn't work well for other numbers.
 function GameView:movePointer(steps)
    -- Temp variables for the row and col nums are used here because the values produced by the
-   -- next if/else block results in two courses of actions. 
+   -- next if/else block results in two courses of actions.
    local temp_row_num = self.active_row_num
    local temp_col_num = self.active_col_num
 
@@ -175,10 +182,10 @@ function GameView:movePointer(steps)
    -- Check to see if advancement landed on a non-active grid square.
    -- If it did, then move the user to the next solve.
    if steps >= 1 and (temp_row_num > self.puzzle.size.rows or
-      temp_col_num > self.puzzle.size.cols or      
+      temp_col_num > self.puzzle.size.cols or
       not self.puzzle:getClueByPos(temp_row_num, temp_col_num, self.active_direction)) then
       self:rightChar()
-      steps = steps - 1 
+      steps = steps - 1
       self:movePointer(steps)
    elseif steps <= -1 and (temp_row_num < 1 or
       temp_col_num < 1 or
@@ -186,7 +193,7 @@ function GameView:movePointer(steps)
       self:leftChar()
       steps = steps + 1
       self:movePointer(steps)
-   else      
+   else
       self.active_row_num = temp_row_num
       self.active_col_num = temp_col_num
    end
@@ -278,9 +285,23 @@ function GameView:showGameMenu()
                text = _("Reveal Puzzle"),
                enabled = false,
                callback = function()
-                  
+
                end,
             },
+         },
+         {
+             {
+                 text = _("Toggle Dark Mode"),
+                 callback = function()
+                     if self.dark_mode then
+                         self.dark_mode = false
+                     else
+                         self.dark_mode = true
+                     end
+                     self:render()
+                     UIManager:close(game_dialog)
+                 end,
+             },
          },
          {
             {
@@ -293,7 +314,7 @@ function GameView:showGameMenu()
             {
                text = _("Exit"),
                callback = function()
-                  self.puzzle:save()     
+                  self.puzzle:save()
                   UIManager:close(game_dialog)
                   UIManager:close(game_view)
                end,

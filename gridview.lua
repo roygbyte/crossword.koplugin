@@ -9,6 +9,7 @@ local InputContainer = require("ui/widget/container/inputcontainer")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local UIManager = require("ui/uimanager")
 local logger = require("logger")
+local ffi = require("ffi")
 
 local SoftKeyboard = require("softkeyboard")
 local GridRow = require("gridrow")
@@ -22,7 +23,8 @@ local GridView = InputContainer:new{
       cols = nil,
       rows = nil,
    },
-   on_tap_callback = nil
+   on_tap_callback = nil,
+   dark_mode = nil,
 }
 
 function GridView:init()
@@ -59,6 +61,7 @@ function GridView:render()
       table.insert(self.rows_view, row)
    end
    -- Build the container.
+   local gray = ffi.typeof("Color8")(0x22)
    self[1] = FrameContainer:new{
       width = self.inner_dimen.w,
       height = self.inner_dimen.h,
@@ -66,7 +69,7 @@ function GridView:render()
       padding_bottom = 0,
       margin = 0,
       bordersize = 0,
-      background = Blitbuffer.COLOR_BLACK,
+      background = (self.dark_mode and gray or Blitbuffer.COLOR_BLACK),
       VerticalGroup:new{
          align = "center",
          -- Add the rows vertical group.
@@ -101,6 +104,7 @@ function GridView:buildRow(squares, row_num)
             status = square.status,
             row_num = row_num, -- we pass the row and col so that
             col_num = col_num, -- the tap callback can propagate values back
+            dark_mode = self.dark_mode,
             on_tap_callback = function(row_num, col_num)
                self.on_tap_callback(row_num, col_num)
             end

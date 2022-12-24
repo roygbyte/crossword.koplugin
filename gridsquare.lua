@@ -11,6 +11,7 @@ local Size = require("ui/size")
 local TextWidget = require("ui/widget/textwidget")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local logger = require("logger")
+local ffi = require("ffi")
 
 local Guess = require("guess")
 
@@ -24,6 +25,7 @@ local GridSquare = InputContainer:extend{
    number_font_size = nil,
    letter_value = nil,
    number_value = nil,
+   dark_mode = nil,
 }
 
 function GridSquare:init()
@@ -33,35 +35,41 @@ function GridSquare:init()
    -- and which square is selected (state 2)
    local state_bg_color
    if self.state == "1" then
-      state_bg_color = Blitbuffer.COLOR_LIGHT_GRAY
+      state_bg_color = self.dark_mode and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_LIGHT_GRAY
    elseif self.state == "2" then
-      state_bg_color = Blitbuffer.COLOR_DARK_GRAY
+      state_bg_color = self.dark_mode and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY
    end
+
+   local text_fg_color = self.dark_mode and Blitbuffer.COLOR_WHITE or Blitbuffer.COLOR_BLACK
+   local bg_default_on = self.dark_mode and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_WHITE
+   local bg_default_off = self.dark_mode and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_BLACK
    -- Set up the right bg color, letter, etc.
    local bg_color = self.letter_value ~= "." and
-      (state_bg_color and state_bg_color or Blitbuffer.COLOR_WHITE) or
-      Blitbuffer.COLOR_BLACK
+      (state_bg_color and state_bg_color or bg_default_on) or
+       bg_default_off
    -- The status bg is used to indicate whether the letter is correct or incorrect.
    local status_bg_color, status_height = 0
    if self.status == Guess.STATUS.CHECKED_INCORRECT then
-      status_bg_color = Blitbuffer.COLOR_BLACK
+      status_bg_color = self.dark_mode and Blitbuffer.COLOR_WHITE or Blitbuffer.COLOR_BLACK
       status_height = 2
    elseif self.letter_value == "." then
-      -- Set the color to black on non-letter squares
-      status_bg_color = Blitbuffer.COLOR_BLACK
+       -- Set the color to black on non-letter squares
+      local gray = ffi.typeof("Color8")(0x22)
+      status_bg_color = self.dark_mode and gray or Blitbuffer.COLOR_BLACK
+      text_fg_color = status_bg_color
+      bg_color = status_bg_color
    else
-      -- Everything else goes white
-      status_bg_color = Blitbuffer.COLOR_WHITE
+       -- Everything else goes to default text color
+      status_bg_color = (self.dark_mode and Blitbuffer.COLOR_WHITE or Blitbuffer.COLOR_BLACK)
    end
 
    self.letter_font_size = TextBoxWidget:getFontSizeToFitHeight(self.height, 1, 0.3)
    self.number_font_size = self.letter_font_size / 2
-
    -- Maybe a letter input by the player.
    self.letter_widget = TextWidget:new{
       text = self.letter_value,
       face = Font:getFace(self.letter_font_face, self.letter_font_size),
-      fgcolor = Blitbuffer.COLOR_BLACK,
+      fgcolor = text_fg_color,
       padding = 0,
       bold = true,
    }
@@ -69,7 +77,7 @@ function GridSquare:init()
    self.number_widget = TextWidget:new{
       text = self.number_value,
       face = Font:getFace(self.number_font_face, self.number_font_size),
-      fgcolor = Blitbuffer.COLOR_BLACK,
+      fgcolor = text_fg_color,
       padding = 0,
       bold = true,
    }
@@ -90,17 +98,19 @@ function GridSquare:init()
          end
       },
    }
+   local border_color = self.dark_mode and (self.state == "2" and Blitbuffer.COLOR_WHITE or Blitbuffer.COLOR_DIM_GRAY) or Blitbuffer.COLOR_BLACK
    -- This is the container for the letter and number.
    self[1] = FrameContainer:new{
       width = self.width - self.margin * 2,
       height = self.height - self.margin * 2,
-      color = Blitbuffer.COLOR_WHITE,
+      color = (self.dark_mode and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_WHITE),
       background = bg_color,
       padding = 0,
       margin = 0,
       margin_left = margin,
       --margin = self.margin or 0,
-      bordersize = 0,
+      bordersize = self.dark_mode and (self.state and 1 or 0) or 0,
+      color = border_color,
       OverlapGroup:new{
          dimen = { w = self.width - self.margin, h = self.height - self.margin },
          padding = 0,

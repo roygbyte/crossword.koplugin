@@ -14,6 +14,7 @@ local LuaSettings = require("frontend/luasettings")
 local logger = require("logger")
 local json = require("json")
 local util = require("util")
+local ffi = require("ffi")
 local _ = require("gettext")
 
 local Solve = require("solve")
@@ -88,7 +89,7 @@ function Crossword:getSubMenuItems()
 
    if continue_puzzle_item then table.insert(sub_menu_items, 1, continue_puzzle_item) end
    if history_menu_items then table.insert(sub_menu_items, 2, history_menu_items[1]) end
-   
+
    return sub_menu_items
 end
 
@@ -131,14 +132,14 @@ function Crossword:showLibraryView()
       onSelectPuzzle = function(item)
          local puzzle =  Puzzle:initializePuzzle(("%s/%s"):format(item.path_to_dir, item.filename))
          -- Because the puzzle is added to history, it needs to also be saved. Otherwise, when
-         -- it's loaded from history there will be no content to restore. 
+         -- it's loaded from history there will be no content to restore.
          puzzle:save()
          local history = History:new{}
          history:init()
          history:add(puzzle.id, puzzle.title)
          self:showGameView(puzzle)
    end}
-   
+
    library:showDirectoryView(self.puzzle_dir)
 end
 --[[--
