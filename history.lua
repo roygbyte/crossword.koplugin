@@ -8,7 +8,7 @@ local History = {
 }
 
 History.STACK = "stack"
-History.MAX_ITEMS = 10
+History.MAX_ITEMS = 100
 
 function History:new(o)
    o = o or {}
@@ -28,7 +28,7 @@ end
 function History:add(puzzle_id, puzzle_title)
    -- Add to the history by pushing to the first element of the list.
    -- The history stack should only contain one entry of a given ID.
-   -- The list should only contain 10 entries.   
+   -- The list should only contain 10 entries.
    local stack = self.lua_settings:readSetting(History.STACK) or {}
    -- Add the new entry to the stack table.
    table.insert(stack, {
