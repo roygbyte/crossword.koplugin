@@ -25,3 +25,10 @@ Solve crosswords on you [KOReader](https://github.com/koreader/koreader) powered
 ### Testing
 
 Copy `crossword_spec.koplugin` into `koreader/spec/unit`. Run the tests with `./kodev test front crossword_spec.lua`.
+
+### Flaws
+
+- Deleting the crossword history doesn't delete the underlying puzzle values. In other words, you can't delete the history and expect to start a puzzle fresh again.
+- The puzzle library doesn't show you puzzles you have completed or are working in progress.
+- There's no congratulatory message upon completing a puzzle (I would expect balloons).
+- There are no easter eggs.
