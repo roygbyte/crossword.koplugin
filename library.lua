@@ -4,7 +4,7 @@ local UIManager = require("ui/uimanager")
 local util = require("util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
-local sort = require("sort")
+local sort = require("frontend/sort")
 
 local Puzzle = require("puzzle")
 
