@@ -33,7 +33,7 @@ function Library:getFilesInDirectory(path_to_dir)
       return items
    end
 
-   for f in iter,  dir_obj do
+   for f in iter, dir_obj do
       local attributes = lfs.attributes(("%s/%s"):format(path_to_dir, f))
       if attributes.mode == "directory"
          or attributes.mode == "file"
@@ -54,6 +54,11 @@ function Library:getFilesInDirectory(path_to_dir)
       end
    end
 
+   table.sort(items, function(a, b)
+          local fn = sort.natsort_cmp()
+          return fn(a.filename, b.filename)
+   end)
+
    return items
 end
 
@@ -67,11 +72,6 @@ end
 
 function Library:showDirectoryView(path_to_directory)
    local directory_items = self:getFilesInDirectory(path_to_directory)
-
-   table.sort(directory_items, function(a, b)
-          local fn = sort.natsort_cmp()
-          return fn(a.title, b.title)
-   end)
    local kv_pairs = {}
    for key, item in ipairs(directory_items) do
       table.insert(kv_pairs, {
