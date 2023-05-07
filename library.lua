@@ -4,6 +4,7 @@ local UIManager = require("ui/uimanager")
 local util = require("util")
 local lfs = require("libs/libkoreader-lfs")
 local logger = require("logger")
+local sort = require("sort")
 
 local Puzzle = require("puzzle")
 
@@ -57,7 +58,6 @@ function Library:getFilesInDirectory(path_to_dir)
 end
 
 function Library:processDirectoryCallback(item)
-   logger.dbg(item)
    if item.mode == "directory" then
       self:showDirectoryView(("%s/%s"):format(item.path_to_dir, item.filename))
    else
@@ -67,6 +67,11 @@ end
 
 function Library:showDirectoryView(path_to_directory)
    local directory_items = self:getFilesInDirectory(path_to_directory)
+
+   table.sort(directory_items, function(a, b)
+          local fn = sort.natsort_cmp()
+          return fn(a.title, b.title)
+   end)
    local kv_pairs = {}
    for key, item in ipairs(directory_items) do
       table.insert(kv_pairs, {
