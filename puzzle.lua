@@ -365,8 +365,7 @@ function Puzzle:checkPuzzle()
       for char_pos, grid_index in ipairs(solve.grid_indices) do
          if self.guesses[grid_index] and not grid_elm_results[grid_index] then
             local letter_guess = self.guesses[grid_index].letter
-            logger.dbg(letter_guess)
-            -- Only check the guess if it is not nil or an empty string            
+            -- Only check the guess if it is not nil or an empty string
             if letter_guess ~= "" and letter_guess ~= nil then
                local letter_solve = string.sub(solve.word, char_pos, char_pos)
                local guess_status = (letter_guess == letter_solve) and
@@ -420,6 +419,14 @@ function Puzzle:checkSquare(row, col)
          self.guesses[grid_index_to_check].status = guess_status
       end
    end
+end
+
+function Puzzle:removeIncorrectGuesses()
+    for grid_elem, guess in pairs(self.guesses) do
+        if guess.status == Guess.STATUS.CHECKED_INCORRECT then
+            self.guesses[grid_elem] = nil
+        end
+    end
 end
 
 return Puzzle

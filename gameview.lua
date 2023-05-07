@@ -247,23 +247,6 @@ function GameView:showGameMenu()
                end,
             },
             {
-               text = _("Check Word"),
-               enabled = false,
-               callback = function()
-
-               end,
-            },
-            {
-               text = _("Check Puzzle"),
-               callback = function()
-                  self.puzzle:checkPuzzle()
-                  UIManager:close(game_dialag)
-                  self:refreshGameView()
-               end,
-            },
-         },
-         {
-            {
                text = _("Reveal Square"),
                callback = function()
                   self.puzzle:revealSquare(
@@ -273,18 +256,22 @@ function GameView:showGameMenu()
                   self:refreshGameView()
                end,
             },
-            {
-               text = _("Reveal Word"),
-               enabled = false,
+         },
+         {
+             {
+               text = _("Check Puzzle"),
                callback = function()
-
+                  UIManager:close(game_dialag)
+                  self.puzzle:checkPuzzle()
+                  self:refreshGameView()
                end,
             },
             {
-               text = _("Reveal Puzzle"),
-               enabled = false,
+               text = _("Remove Incorrect"),
                callback = function()
-
+                   self.puzzle:removeIncorrectGuesses()
+                   UIManager:close(game_dialog)
+                   self:refreshGameView()
                end,
             },
          },
