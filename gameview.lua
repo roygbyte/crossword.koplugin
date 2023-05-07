@@ -76,11 +76,9 @@ function GameView:render()
       grid = self.puzzle:getGrid(),
       dark_mode = self.dark_mode,
       on_tap_callback = function(row_num, col_num)
-         -- On tap, pass the row and col nums to the active puzzle and return
-         -- a clue based on the active direction (i.e.: across or down)
-         -- Then update the grid (@todo: display touch feedback) and the clue in
-         -- the active grid view. Then refresh this view.
-         logger.dbg(row_num .. " " .. col_num)
+         if(self.puzzle:getSquareAtPos(row_num, col_num)) then
+             return
+         end
          self.active_row_num = row_num
          self.active_col_num = col_num
          self:refreshGameView()
