@@ -8,6 +8,24 @@ local sort = require("sort")
 
 local Puzzle = require("puzzle")
 
+local function titleToMonth(title)
+    local months = {
+        ["01"] = "January",
+        ["02"] = "February",
+        ["03"] = "March",
+        ["04"] = "April",
+        ["05"] = "May",
+        ["06"] = "June",
+        ["07"] = "July",
+        ["08"] = "August",
+        ["09"] = "September",
+        ["10"] = "October",
+        ["11"] = "November",
+        ["12"] = "December",
+    }
+    return months[title] or title
+end
+
 local Library = {
    puzzle_dir = nil,
    onSelectPuzzle = function() end
@@ -50,6 +68,8 @@ function Library:getFilesInDirectory(path_to_dir)
             mode = attributes.mode, -- The mode of the item  (i.e.: file or directory).
             path_to_dir = path_to_dir -- The path to the item's directory.
          }
+         -- Maybe change the title into a month
+         item.title = titleToMonth(item.title)
          table.insert(items, item)
       end
    end
