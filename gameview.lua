@@ -223,6 +223,7 @@ function GameView:onSwipe(arg, ges_ev)
    local direction = BD.flipDirectionIfMirroredUILayout(ges_ev.direction)
    if direction == "south" then
       -- See readerhighlight.lua for more ideas about how to use ButtonDialog.
+      self.puzzle:save()
       self:showGameMenu()
    elseif direction == "east" then
       self:leftChar()
@@ -291,16 +292,15 @@ function GameView:showGameMenu()
          },
          {
             {
-               text = _("Save"),
+               text = _("Saved!"),
+               enabled = false,
                callback = function()
-                  self.puzzle:save()
-                  UIManager:close(game_dialog)
+                   -- Nothing to show
                end,
             },
             {
                text = _("Exit"),
                callback = function()
-                  self.puzzle:save()
                   UIManager:close(game_dialog)
                   UIManager:close(game_view)
                end,
