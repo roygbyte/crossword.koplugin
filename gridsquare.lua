@@ -35,9 +35,9 @@ function GridSquare:init()
    -- and which square is selected (state 2)
    local state_bg_color
    if self.state == "1" then
-      state_bg_color = self.dark_mode and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_LIGHT_GRAY
+      state_bg_color = self.dark_mode and Blitbuffer.COLOR_GRAY_3 or Blitbuffer.COLOR_LIGHT_GRAY
    elseif self.state == "2" then
-      state_bg_color = self.dark_mode and Blitbuffer.COLOR_BLACK or Blitbuffer.COLOR_DARK_GRAY
+      state_bg_color = self.dark_mode and Blitbuffer.COLOR_GRAY_5 or Blitbuffer.COLOR_DARK_GRAY
    end
 
    local text_fg_color = self.dark_mode and Blitbuffer.COLOR_WHITE or Blitbuffer.COLOR_BLACK
@@ -98,7 +98,6 @@ function GridSquare:init()
          end
       },
    }
-   local border_color = self.dark_mode and (self.state == "2" and Blitbuffer.COLOR_WHITE or Blitbuffer.COLOR_DIM_GRAY) or Blitbuffer.COLOR_BLACK
    -- This is the container for the letter and number.
    self[1] = FrameContainer:new{
       width = self.width - self.margin * 2,
@@ -108,8 +107,7 @@ function GridSquare:init()
       padding = 0,
       margin = 0,
       margin_left = margin,
-      --margin = self.margin or 0,
-      bordersize = self.dark_mode and (self.state and 1 or 0) or 0,
+      bordersize = 0,
       color = border_color,
       OverlapGroup:new{
          dimen = { w = self.width - self.margin, h = self.height - self.margin },
