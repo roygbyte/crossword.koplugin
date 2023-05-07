@@ -76,8 +76,9 @@ function GameView:render()
       grid = self.puzzle:getGrid(),
       dark_mode = self.dark_mode,
       on_tap_callback = function(row_num, col_num)
-         if(self.puzzle:getSquareAtPos(row_num, col_num)) then
-             return
+         local maybe_square_index = self.puzzle:getIndexFromCoordinates(row_num, col_num)
+         if not self.puzzle:getSolveByIndex(maybe_square_index) then
+            return
          end
          self.active_row_num = row_num
          self.active_col_num = col_num

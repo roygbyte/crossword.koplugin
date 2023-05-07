@@ -197,11 +197,6 @@ function Puzzle:resetActiveSquare()
    self.active_square_index = -1
 end
 
-function Puzzle:getSquareAtPos(row, col)
-   local index = self:getIndexFromCoordinates(row, col) --((row - 1) * self.size.rows) + col
-   return self.solves[index]
-end
-
 function Puzzle:getIndexFromCoordinates(row, col)
    local index = col + ((row - 1) * self.size.cols)
    return index
