@@ -1,12 +1,12 @@
 # Crossword
 
-Solve crosswords on you [KOReader](https://github.com/koreader/koreader) powered device!
+Solve crosswords on your [KOReader](https://github.com/koreader/koreader) powered device!
 
 ![kocrossword_desk](https://user-images.githubusercontent.com/82218266/156276756-26628c01-8441-44eb-8c09-b8d14c515c31.png)
 
 ## Installation
 
-### Get the projectt files and transfer them to your device.
+### Get the project files and transfer them to your device.
 
 1. Download or clone this repository to your computer.
 2. Initialize the [submodule](https://github.com/doshea/nyt_crosswords/tree/623e72e99b25a524c85b56bf832dd7cd8c2a34a9) (run `git submodule update --init` inside the `crossword.koplugin` folder, or visit the submodule repo, download it to your machine, and place it in this project's directory)
@@ -21,6 +21,8 @@ Solve crosswords on you [KOReader](https://github.com/koreader/koreader) powered
 3. Click on "Set puzzles folder" and choose the `nyt_crosswords` folder.
 
 ## Development
+
+See my article ["How I develop plugins for KOReader"](https://roygbyte.com/how_i_develop_plugins_for_koreader.html) for an overview of this plugin's development process.
 
 ### Testing
 
