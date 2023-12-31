@@ -40,7 +40,7 @@ end
 
 --[[--
 Given a directory, return a table of files located within this directory. Filter
-the files by type and extension, showing only JSON files. These are assumed to be
+the files by type and extension, showing only JSON and IPUZ files. These are assumed to be
 the crossword puzzles.
 ]]
 function Library:getFilesInDirectory(path_to_dir)
@@ -57,11 +57,12 @@ function Library:getFilesInDirectory(path_to_dir)
          or attributes.mode == "file"
          and f ~= "."
          and f ~= ".."
-         and util.stringEndsWith(f, ".json")
+         and (util.stringEndsWith(f, ".json") or
+	      util.stringEndsWith(f, ".ipuz"))
       then
          local title = (attributes.mode == "directory") and
             f or -- Use the file name as the title
-            Puzzle:initializePuzzle(("%s/%s"):format(path_to_dir, f)).title -- Use the puzzle's name as the title
+            Puzzle:initializePuzzleFromFile(("%s/%s"):format(path_to_dir, f)).title -- Use the puzzle's name as the title
          local item = {
             title = title, -- The item's name to show the user.
             filename = f, -- The item's name in the filesystem.

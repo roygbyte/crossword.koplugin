@@ -5,8 +5,10 @@ describe("Crossword plugin module", function()
       local Solve
       local path_to_odd_puzzle = "plugins/crossword.koplugin/nyt_crosswords/2009/08/19.json"
       local path_to_even_puzzle = "plugins/crossword.koplugin/nyt_crosswords/2009/08/17.json"
+      local path_to_ipuz_puzzle = "plugins/crossword.koplugin/sample.ipuz"
       local odd_puzzle -- Size is 15 rows by 16 columns
       local even_puzzle -- Size is 15 rows by 15 columns
+      local ipuz_puzzle
       local game_view
 
       setup(function()
@@ -18,18 +20,21 @@ describe("Crossword plugin module", function()
             Puzzle = require("puzzle")
             Solve = require("solve")
 
-            odd_puzzle = Puzzle:initializePuzzle(path_to_odd_puzzle)
-            even_puzzle = Puzzle:initializePuzzle(path_to_even_puzzle)
+            odd_puzzle = Puzzle:initializePuzzleFromFile(path_to_odd_puzzle)
+            even_puzzle = Puzzle:initializePuzzleFromFile(path_to_even_puzzle)
+	    ipuz_puzzle = Puzzle:initializePuzzleFromFile(path_to_ipuz_puzzle)
       end)
 
       describe("Puzzles", function()
             it("should have correct count of rows", function()
                   assert.are.same(15, odd_puzzle.size.rows)
                   assert.are.same(15, even_puzzle.size.rows)
+		  assert.are.same(15, ipuz_puzzle.size.rows)
             end)
             it("should have correct count of columns", function()
                   assert.are.same(16, odd_puzzle.size.cols)
                   assert.are.same(15, even_puzzle.size.cols)
+		  assert.are.same(15, ipuz_puzzle.size.cols)
             end)
             it("should return correct index from coordinates", function()
                   assert.are.same(1, even_puzzle:getIndexFromCoordinates(1,1))

@@ -130,7 +130,7 @@ function Crossword:showLibraryView()
    local library = Library:new{
       puzzle_dir = self.puzzle_dir,
       onSelectPuzzle = function(item)
-         local puzzle =  Puzzle:initializePuzzle(("%s/%s"):format(item.path_to_dir, item.filename))
+         local puzzle =  Puzzle:initializePuzzleFromFile(("%s/%s"):format(item.path_to_dir, item.filename))
          -- Because the puzzle is added to history, it needs to also be saved. Otherwise, when
          -- it's loaded from history there will be no content to restore.
          puzzle:save()

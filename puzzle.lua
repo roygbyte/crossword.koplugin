@@ -1,10 +1,128 @@
 local md5 = require("ffi/sha2").md5
 local logger = require("logger")
 local json = require("json")
+local util = require("util")
 
 local Guess = require("guess")
 local Solve = require("solve")
 local State = require("state")
+
+local supported_formats = {
+   ipuz = {
+      fields = {"kind", "dimensions", "puzzle", "solution", "clues"},
+      callback = (function(puzzle, json_object)
+	    puzzle.title = json_object.title
+	    puzzle.size = {
+	       cols = json_object.dimensions.width,
+	       rows = json_object.dimensions.height
+	    }
+	    puzzle.solves = {}
+	    puzzle.guesses = {}
+	    -- title is probably not enough for uniqueness...
+	    -- maybe title and first + second clue/answer?
+	    puzzle.id = md5(json_object.title)
+	    across = {}
+	    for i, row in pairs(json_object.solution) do
+	       across_word = ""
+	       for j, letter in pairs(row) do
+		  if letter == "#" then
+		     if across_word ~= "" then
+			table.insert(across, across_word)
+		     end
+		     across_word = ""
+		  else
+		     across_word = across_word .. letter
+		  end
+	       end
+	       if across_word ~= "" then
+		  table.insert(across, across_word)
+	       end
+	    end	      
+	    local down = {}
+	    for i = 1, #json_object.solution do
+	       local down_word = ""
+	       for j, row in pairs(json_object.solution) do
+		  local letter = row[i]
+		  if letter ~= "#" then
+		     down_word = down_word .. letter
+		  end
+		  if letter == "#" or j == #json_object.solution then
+		     if down_word ~= "" then
+			-- the puzzle position is found by finding the col+row combination
+			-- that points to the position of the first letter of the word.
+			-- this is typically found by subtracting the word length, which
+			-- accommodates all rows except the last. On the last row we need
+			-- to subtract 1, because we're still positioned ontop of the
+			-- row which is the word.
+			local row_offset = string.len(down_word)
+			if j == #json_object.solution then
+			   row_offset = row_offset - 1
+			end
+			table.insert(
+			   down,
+			   {
+			      word = down_word,
+			      pos = tonumber(json_object.puzzle[j - row_offset][i])
+			   }
+			)
+			down_word = ""
+		     end		     
+		  end
+	       end
+	    end
+	    for i, word in pairs(down) do
+	       print(word.pos .. word.word)
+	    end
+	    table.sort(down, function(a, b)
+			  return a.pos < b.pos
+	    end)
+	    for i, word in pairs(down) do
+	       down[i] = word.word
+	    end
+	    -- Make the clues.
+	    local function format_clues(unformatted_clues)
+	       local clues = {}
+	       for i, clue in pairs(unformatted_clues) do
+		  table.insert(clues, clue[1] .. ". " .. clue[2])
+	       end
+	       return clues
+	    end
+	    down_clues = format_clues(json_object.clues.Down)
+	    across_clues = format_clues(json_object.clues.Across)
+	    -- Make grid nums. Could be combined with across word logic, probs.
+	    local gridnums = {}
+	    for i, row in pairs(json_object.puzzle) do
+	       for j, letter in pairs(row) do
+		  if letter == "#" then
+		     letter = "0"
+		  end
+		  table.insert(gridnums, letter)
+	       end
+	    end
+	    puzzle:createSolves(across_clues, across, Solve.ACROSS, gridnums)
+	    puzzle:createSolves(down_clues, down, Solve.DOWN, gridnums)
+      end),	 
+   },
+   nyt = {
+      fields = {"answers", "clues", "grid", "size"},
+      callback = (function(puzzle, json_object)
+	    puzzle.size = json_object.size
+	    -- Initialize the solves.
+	    puzzle.solves = {}
+	    -- Initialize the player's inputs.
+	    puzzle.guesses = {}
+	    -- Initialize the puzzle's title, etc.
+	    puzzle.title = json_object.title
+	    puzzle.editor = json_object.editor
+	    puzzle.id = md5(json_object.title)
+	    -- Create the down and across solves.
+	    puzzle:createSolves(json_object.clues.down, json_object.answers.down,
+				Solve.DOWN, json_object.gridnums)
+	    puzzle:createSolves(json_object.clues.across, json_object.answers.across,
+				Solve.ACROSS, json_object.gridnums)
+      end)
+   }
+}   
 
 local Puzzle = State:new{
    size = {
@@ -22,7 +140,7 @@ function Puzzle:new(o)
    return o
 end
 
-function Puzzle:initializePuzzle(path_to_file)
+function Puzzle:initializePuzzleFromFile(path_to_file)
    local file, err = io.open(path_to_file, "rb")
 
    if not file then
@@ -33,8 +151,8 @@ function Puzzle:initializePuzzle(path_to_file)
    file:close()
    
    local Puzzle = require("puzzle")
-   local puzzle = Puzzle:new{}
-   puzzle:init(json.decode(file_content))
+   local puzzle = Puzzle:new{}   
+   puzzle:initializePuzzleFromJson(json.decode(file_content))
    puzzle:load()
 
    return puzzle
@@ -48,26 +166,35 @@ function Puzzle:loadById(puzzle_id)
    return puzzle
 end
 
-function Puzzle:init(json_object)
+function Puzzle:initializePuzzleFromJson(json_object)
    -- Lazy error checking
    if not json_object then
       logger.dbg("Puzzle: json_object must be set for puzzle to be created.")
       return false
    end
-   -- Onto the initialization.
-   self.size = json_object.size
-   -- Initialize the solves.
-   self.solves = {}
-   -- Initialize the player's inputs.
-   self.guesses = {}
-   -- Initialize the puzzle's title, etc.
-   self.title = json_object.title
-   self.editor = json_object.editor
-   self.id = md5(json_object.title)
-   -- Create the down and across solves.
-   self:createSolves(json_object.clues.down, json_object.answers.down, Solve.DOWN, json_object.gridnums)
-   self:createSolves(json_object.clues.across, json_object.answers.across, Solve.ACROSS, json_object.gridnums)
+   
+   local function select_format_cb(supported_formats, json_object)
+      for i, format in pairs(supported_formats) do
+	 is_format = true
+	 for k, field in pairs(format.fields) do
+	    if not json_object[field] then
+	       is_format = false
+	       break
+	    end
+	 end
+	 if is_format then
+	    return format.callback
+	 end
+      end
+   end
+
+   local format_cb = select_format_cb(supported_formats, json_object)
+   if not format_cb then
+      return _("Could not find supported format in JSON object")
+   end
+   self = format_cb(self, json_object)
 end
+
 -- For lack of better naming, the "solves" are the combination of
 -- word, direction, and clue that make up a crossword puzzle. This method
 -- creates the solves from a four separate lists. That fours lists are
@@ -77,7 +204,7 @@ end
 -- really, the object doesn't care where the data is coming from. It just wants
 -- the data. Nom, nom, nom!
 function Puzzle:createSolves(clues, answers, direction, grid_nums)
-   for i, clue in ipairs(clues) do
+  for i, clue in ipairs(clues) do
       local solve = Solve:new{
          word = answers[i],
          direction = direction,
@@ -311,6 +438,12 @@ function Puzzle:getSolveByPos(row, col, direction)
    -- if not solve and index then
       -- return nil
    -- else
+   print(solve.word)
+   print(solve.direction)
+   print(solve.start)
+   print(solve.clue_num)
+   print(solve.grid_num)
+   print(solve.grid_indices)
       return solve, index
    -- end
 end

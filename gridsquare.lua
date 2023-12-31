@@ -35,9 +35,9 @@ function GridSquare:init()
    -- and which square is selected (state 2)
    local state_bg_color
    if self.state == "1" then
-      state_bg_color = self.dark_mode and Blitbuffer.COLOR_GRAY_3 or Blitbuffer.COLOR_LIGHT_GRAY
+      state_bg_color = self.dark_mode and Blitbuffer.COLOR_GRAY_5 or Blitbuffer.COLOR_LIGHT_GRAY
    elseif self.state == "2" then
-      state_bg_color = self.dark_mode and Blitbuffer.COLOR_GRAY_5 or Blitbuffer.COLOR_DARK_GRAY
+      state_bg_color = self.dark_mode and Blitbuffer.COLOR_GRAY_3 or Blitbuffer.COLOR_DARK_GRAY
    end
 
    local text_fg_color = self.dark_mode and Blitbuffer.COLOR_WHITE or Blitbuffer.COLOR_BLACK
