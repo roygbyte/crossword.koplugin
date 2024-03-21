@@ -307,6 +307,8 @@ function GameView:showGameMenu()
                   UIManager:close(game_dialog)
                   UIManager:close(game_view)
                   self:refreshGameView()
+                  Screen:clear()
+                  Screen:refreshFull(0, 0, Screen:getWidth(), Screen:getHeight())
                end,
             },
          }
