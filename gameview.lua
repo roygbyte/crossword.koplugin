@@ -159,6 +159,9 @@ function GameView:rightChar()
 end
 
 function GameView:leftChar()
+   if ( self.active_row_num == 1 and self.active_col_num == 1 ) then
+      return
+   end
    local row, col = self.puzzle:getPrevCluePos(self.active_row_num, self.active_col_num, self.active_direction)
    self.active_row_num = row
    self.active_col_num = col
@@ -303,6 +306,7 @@ function GameView:showGameMenu()
                callback = function()
                   UIManager:close(game_dialog)
                   UIManager:close(game_view)
+                  self:refreshGameView()
                end,
             },
          }
