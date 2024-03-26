@@ -160,10 +160,13 @@ end
 
 function GameView:leftChar()
    if (isTap == 1 and self.active_row_num == 1 and self.active_col_num == 1) then
+      isTap = 0
       return
    elseif (isTap == 1 and self.puzzle.size.cols > 15 and self.active_row_num < 3 and self.active_col_num == 1) then
+      isTap = 0
       return
    end
+   isTap = 0
    local row, col = self.puzzle:getPrevCluePos(self.active_row_num, self.active_col_num, self.active_direction)
    self.active_row_num = row
    self.active_col_num = col
