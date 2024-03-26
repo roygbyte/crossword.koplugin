@@ -141,6 +141,7 @@ end
 function GridSquare:onTap(_, ges)
    if self.on_tap_callback then
       self.on_tap_callback(self.row_num, self.col_num)
+      isTap = 1
    end
 end
 
