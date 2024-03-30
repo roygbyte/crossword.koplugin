@@ -103,14 +103,13 @@ function Library:showDirectoryView(path_to_directory)
             end
       })
    end
-   LibraryPage = KeyValuePage:new{
-      title = "Puzzles",
-      kv_pairs = kv_pairs,
-      close_callback = function()
-          UIManager:restartKOReader()
-	  end,
-   }
-   UIManager:show(LibraryPage)
+   UIManager:show(KeyValuePage:new{
+         title = "Puzzles",
+         kv_pairs = kv_pairs,
+         close_callback = function()
+            UIManager:restartKOReader()
+	    end,
+   })
 end
 
 return Library
