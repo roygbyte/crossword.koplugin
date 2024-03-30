@@ -103,18 +103,19 @@ function Library:showDirectoryView(path_to_directory)
             end
       })
    end
-   local LibraryPage = KeyValuePage:new{
+   LibraryPage = KeyValuePage:new{
       title = "Puzzles",
       kv_pairs = kv_pairs,
-      close_callback = function() self:onClose() end,
+      close_callback = function()
+          isClose = 1
+          --UIManager:restartKOReader()
+	  end,
    }
-   UIManager:show(LibraryPage)
-end
-
-function Library:onClose()
-   UIManager:restartKOReader()
-   --UIManager:close(LibraryPage)
-   return true
+   if isClose == 1 then
+     UIManager:restartKOReader()
+   else 
+     UIManager:show(LibraryPage)
+   end
 end
 
 return Library
