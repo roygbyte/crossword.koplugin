@@ -107,15 +107,10 @@ function Library:showDirectoryView(path_to_directory)
       title = "Puzzles",
       kv_pairs = kv_pairs,
       close_callback = function()
-          isClose = 1
-          --UIManager:restartKOReader()
+          UIManager:restartKOReader()
 	  end,
    }
-   if isClose == 1 then
-     UIManager:restartKOReader()
-   else 
-     UIManager:show(LibraryPage)
-   end
+   UIManager:show(LibraryPage)
 end
 
 return Library
