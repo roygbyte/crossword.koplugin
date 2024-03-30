@@ -311,9 +311,7 @@ function GameView:showGameMenu()
                callback = function()
                   UIManager:close(game_dialog)
                   UIManager:close(game_view)
-                  self:refreshGameView()
-                  Screen:clear()
-                  Screen:refreshFull(0, 0, Screen:getWidth(), Screen:getHeight())
+                  UIManager:setDirty(nil, "full")
                end,
             },
          }
