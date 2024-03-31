@@ -93,8 +93,8 @@ end
 
 function Library:showDirectoryView(path_to_directory)
    if firstRun == nil then
-	  firstRun = 1
-	  firstView = UIManager:getTopmostVisibleWidget()
+      firstRun = 1
+      firstView = UIManager:getTopmostVisibleWidget()
    end
    local directory_items = self:getFilesInDirectory(path_to_directory)
    local kv_pairs = {}
