@@ -92,10 +92,6 @@ function Library:processDirectoryCallback(item)
 end
 
 function Library:showDirectoryView(path_to_directory)
-   if firstRun == nil then
-      firstRun = 1
-      firstView = UIManager:getTopmostVisibleWidget()
-   end
    local directory_items = self:getFilesInDirectory(path_to_directory)
    local kv_pairs = {}
    for key, item in ipairs(directory_items) do
@@ -107,17 +103,23 @@ function Library:showDirectoryView(path_to_directory)
             end
       })
    end
-   UIManager:show(KeyValuePage:new{
+   lastView = UIManager:getTopmostVisibleWidget()
+   LibraryPage = KeyValuePage:new{
          title = "Puzzles",
          kv_pairs = kv_pairs,
          close_callback = function()
-            while (UIManager:getTopmostVisibleWidget() ~= firstView) do
-	       UIManager:close(UIManager:getTopmostVisibleWidget())
+	   if lastView ~= UIManager:getTopmostVisibleWidget() then
+	      UIManager:close(LibraryPage)
+	   else
+	      while (UIManager:getTopmostVisibleWidget() ~= firstView) do
+		UIManager:close(UIManager:getTopmostVisibleWidget())
+	      end
+	      UIManager:close(UIManager:getTopmostVisibleWidget())
+	      UIManager:setDirty(nil, "full")
 	    end
-	    UIManager:close(UIManager:getTopmostVisibleWidget())
-	    UIManager:setDirty(nil, "full")
 	 end
-   }) 
+   }
+   UIManager:show(LibraryPage)
 end
 
 return Library
