@@ -58,6 +58,7 @@ function Crossword:getSubMenuItems()
          text = _("Puzzle Library"),
          callback = function()
             self:showLibraryView()
+            firstRun = nil
          end
       },
       {
