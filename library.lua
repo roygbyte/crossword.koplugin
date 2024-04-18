@@ -103,10 +103,23 @@ function Library:showDirectoryView(path_to_directory)
             end
       })
    end
-   UIManager:show(KeyValuePage:new{
+   lastView = UIManager:getTopmostVisibleWidget()
+   LibraryPage = KeyValuePage:new{
          title = "Puzzles",
-         kv_pairs = kv_pairs
-   })
+         kv_pairs = kv_pairs,
+         close_callback = function()
+	   if lastView ~= UIManager:getTopmostVisibleWidget() then
+	      UIManager:close(LibraryPage)
+	   else
+	      while (UIManager:getTopmostVisibleWidget() ~= firstView) do
+		UIManager:close(UIManager:getTopmostVisibleWidget())
+	      end
+	      UIManager:close(UIManager:getTopmostVisibleWidget())
+	      UIManager:setDirty(nil, "full")
+	    end
+	 end
+   }
+   UIManager:show(LibraryPage)
 end
 
 return Library
