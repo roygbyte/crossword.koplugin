@@ -58,6 +58,7 @@ function Crossword:getSubMenuItems()
          text = _("Puzzle Library"),
          callback = function()
             self:showLibraryView()
+            firstView = UIManager:getTopmostVisibleWidget()
          end
       },
       {
