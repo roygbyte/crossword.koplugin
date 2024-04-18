@@ -115,7 +115,6 @@ function Library:showDirectoryView(path_to_directory)
 		UIManager:close(UIManager:getTopmostVisibleWidget())
 	      end
 	      UIManager:close(UIManager:getTopmostVisibleWidget())
-	      UIManager:setDirty(nil, "full")
 	    end
 	 end
    }
