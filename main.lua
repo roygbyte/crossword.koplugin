@@ -141,6 +141,10 @@ function Crossword:showLibraryView()
    end}
 
    library:showDirectoryView(self.puzzle_dir)
+   -- `initial_view` declared after library view is shown so that
+   -- variable contains that first directory view, which must be known
+   -- to successfully destroy the library view when closed.
+   initial_view = UIManager:getTopmostVisibleWidget()
 end
 --[[--
 
