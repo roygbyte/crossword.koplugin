@@ -273,6 +273,7 @@ function GameView:showGameMenu()
                    self.puzzle:removeIncorrectGuesses()
                    UIManager:close(game_dialog)
                    self:refreshGameView()
+                   UIManager:setDirty(nil, "full")
                end,
             },
          },
@@ -303,12 +304,14 @@ function GameView:showGameMenu()
                callback = function()
                   UIManager:close(game_dialog)
                   UIManager:close(game_view)
+                  UIManager:setDirty(nil, "full")
                end,
             },
          }
       },
       tap_close_callback = function()
          UIManager:close(game_dialog)
+         UIManager:setDirty(nil, "full")
       end,
    }
    UIManager:show(game_dialog)
